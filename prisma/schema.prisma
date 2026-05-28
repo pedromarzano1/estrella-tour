@@ -1,0 +1,250 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Usuarios ──────────────────────────────────────────────────────────────────
+
+model User {
+  id            String        @id @default(cuid())
+  nombre        String
+  email         String        @unique
+  telefono      String?
+  passwordHash  String
+  rol           Rol           @default(USUARIO)
+  activo        Boolean       @default(true)
+  creadoEn      DateTime      @default(now())
+  actualizadoEn DateTime      @updatedAt
+
+  reservas       Reserva[]
+  sesiones       Session[]
+  resetTokens    PasswordResetToken[]
+  pasajerosFijos PasajeroFijo[]
+
+  @@map("usuarios")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique @default(cuid())
+  expira    DateTime
+  creadoEn  DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sesiones")
+}
+
+enum Rol {
+  USUARIO
+  ADMIN
+}
+
+// ─── Vehículos ─────────────────────────────────────────────────────────────────
+
+model Vehiculo {
+  id            String   @id @default(cuid())
+  patente       String   @unique
+  descripcion   String
+  capacidad     Int
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  viajes             Viaje[]
+  viajesRecurrentes  ViajeRecurrente[]
+
+  @@map("vehiculos")
+}
+
+// ─── Viajes ────────────────────────────────────────────────────────────────────
+
+model Viaje {
+  id                  String           @id @default(cuid())
+  origen              String
+  destino             String
+  horarioSalida       DateTime
+  precio              Float
+  estado              EstadoViaje      @default(ACTIVO)
+  vehiculoId          String
+  observaciones       String?
+  viajeRecurrenteId   String?
+  creadoEn            DateTime         @default(now())
+  actualizadoEn       DateTime         @updatedAt
+
+  vehiculo            Vehiculo         @relation(fields: [vehiculoId], references: [id])
+  viajeRecurrente     ViajeRecurrente? @relation(fields: [viajeRecurrenteId], references: [id])
+  asientos            Asiento[]
+  reservas            Reserva[]
+
+  @@map("viajes")
+}
+
+// ─── Viajes Recurrentes (plantillas semanales) ────────────────────────────────
+
+model ViajeRecurrente {
+  id            String   @id @default(cuid())
+  origen        String
+  destino       String
+  diaSemana     Int      // 0=Dom 1=Lun 2=Mar 3=Mie 4=Jue 5=Vie 6=Sab
+  hora          String   // "HH:mm"
+  precio        Float
+  vehiculoId    String
+  observaciones String?
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  vehiculo       Vehiculo      @relation(fields: [vehiculoId], references: [id])
+  viajes         Viaje[]
+  pasajerosFijos PasajeroFijo[]
+
+  @@map("viajes_recurrentes")
+}
+
+model PasajeroFijo {
+  id                String          @id @default(cuid())
+  viajeRecurrenteId String
+  userId            String
+  activo            Boolean         @default(true)
+  creadoEn          DateTime        @default(now())
+  actualizadoEn     DateTime        @updatedAt
+
+  viajeRecurrente   ViajeRecurrente @relation(fields: [viajeRecurrenteId], references: [id])
+  user              User            @relation(fields: [userId], references: [id])
+
+  @@unique([viajeRecurrenteId, userId])
+  @@map("pasajeros_fijos")
+}
+
+enum EstadoViaje {
+  ACTIVO
+  CANCELADO
+  COMPLETADO
+}
+
+// ─── Asientos ──────────────────────────────────────────────────────────────────
+
+model Asiento {
+  id       String        @id @default(cuid())
+  numero   Int
+  viajeId  String
+  estado   EstadoAsiento @default(DISPONIBLE)
+
+  viaje    Viaje         @relation(fields: [viajeId], references: [id], onDelete: Cascade)
+  reserva  Reserva?
+
+  @@unique([viajeId, numero])
+  @@map("asientos")
+}
+
+enum EstadoAsiento {
+  DISPONIBLE
+  RESERVADO
+  PAGADO
+}
+
+// ─── Reservas ─────────────────────────────────────────────────────────────────
+
+model Reserva {
+  id              String          @id @default(cuid())
+  userId          String
+  viajeId         String
+  asientoId       String          @unique
+  metodoPago      MetodoPago
+  estadoPago      EstadoPago      @default(PENDIENTE)
+  estadoReserva   EstadoReserva   @default(CONFIRMADA)
+  mpPreferenceId  String?
+  mpPaymentId     String?
+  monto           Float
+  emailEnviado        Boolean         @default(false)
+  recordatorioEnviado Boolean         @default(false)
+  creadoEn            DateTime        @default(now())
+  actualizadoEn   DateTime        @updatedAt
+  canceladaEn     DateTime?
+
+  user            User            @relation(fields: [userId], references: [id])
+  viaje           Viaje           @relation(fields: [viajeId], references: [id])
+  asiento         Asiento         @relation(fields: [asientoId], references: [id])
+  pago            Pago?
+
+  @@map("reservas")
+}
+
+enum MetodoPago {
+  MERCADO_PAGO
+  EFECTIVO
+}
+
+enum EstadoPago {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  EN_PROCESO
+}
+
+enum EstadoReserva {
+  CONFIRMADA
+  CANCELADA
+}
+
+// ─── Pagos (log de webhook MercadoPago) ───────────────────────────────────────
+
+model Pago {
+  id              String   @id @default(cuid())
+  reservaId       String   @unique
+  mpPaymentId     String?  @unique
+  monto           Float
+  estado          String
+  rawData         Json?
+  creadoEn        DateTime @default(now())
+  actualizadoEn   DateTime @updatedAt
+
+  reserva         Reserva  @relation(fields: [reservaId], references: [id])
+
+  @@map("pagos")
+}
+
+// ─── Reset de contraseña ──────────────────────────────────────────────────────
+
+model PasswordResetToken {
+  id       String   @id @default(cuid())
+  userId   String
+  token    String   @unique
+  expira   DateTime
+  usado    Boolean  @default(false)
+  creadoEn DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+// ─── Webhook logs (auditoría) ─────────────────────────────────────────────────
+
+model WebhookLog {
+  id         String   @id @default(cuid())
+  tipo       String
+  payload    Json
+  procesado  Boolean  @default(false)
+  error      String?
+  creadoEn   DateTime @default(now())
+
+  @@map("webhook_logs")
+}
+
+// ─── Rate limiting distribuido ────────────────────────────────────────────────
+
+model RateLimitEntry {
+  key     String   @id
+  count   Int      @default(0)
+  resetAt DateTime
+
+  @@map("rate_limit_entries")
+}
