@@ -3,9 +3,12 @@ import { Shield, Clock, Star, MessageCircle, MapPin, CreditCard, CheckCircle, Bu
 import { Navbar } from "@/components/public/Navbar";
 import { Footer } from "@/components/public/Footer";
 import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function HomePage() {
   const user = await getSession();
+
+  if (user?.rol === "ADMIN") redirect("/admin");
 
   return (
     <div className="min-h-screen flex flex-col">
