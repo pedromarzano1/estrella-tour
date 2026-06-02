@@ -108,8 +108,114 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  // ── Avisos de pago pendiente ──────────────────────────────────────────────
+  const en10h = new Date(ahora.getTime() + 10 * 60 * 60 * 1000);
+  const en14h = new Date(ahora.getTime() + 14 * 60 * 60 * 1000);
+
+  const [pendientes24h, pendientes12h] = await Promise.all([
+    prisma.reserva.findMany({
+      where: {
+        estadoReserva: "CONFIRMADA",
+        estadoPago: "PENDIENTE",
+        metodoPago: "MERCADO_PAGO",
+        pagoRecordatorio24h: false,
+        viaje: { horarioSalida: { gte: en22h, lte: en26h }, estado: "ACTIVO" },
+      },
+      include: {
+        user: { select: { nombre: true, email: true } },
+        viaje: { select: { origen: true, destino: true, horarioSalida: true } },
+      },
+    }),
+    prisma.reserva.findMany({
+      where: {
+        estadoReserva: "CONFIRMADA",
+        estadoPago: "PENDIENTE",
+        metodoPago: "MERCADO_PAGO",
+        pagoRecordatorio12h: false,
+        viaje: { horarioSalida: { gte: en10h, lte: en14h }, estado: "ACTIVO" },
+      },
+      include: {
+        user: { select: { nombre: true, email: true } },
+        viaje: { select: { origen: true, destino: true, horarioSalida: true } },
+      },
+    }),
+  ]);
+
+  const ids24h: string[] = [];
+  const ids12h: string[] = [];
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://estrella-tour.vercel.app";
+
+  for (const r of pendientes24h) {
+    const hora = format(r.viaje.horarioSalida, "HH:mm");
+    const fecha = format(r.viaje.horarioSalida, "d 'de' MMMM", { locale: es });
+    try {
+      await createTransporter().sendMail({
+        from: `"Estrella Tour" <${FROM_EMAIL}>`,
+        to: r.user.email,
+        subject: `⚠️ Falta abonar tu reserva — viaje mañana ${hora} hs`,
+        html: `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;background:#f4f7fb;margin:0;padding:0;">
+  <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background:#d97706;padding:32px 40px;text-align:center;">
+      <h1 style="color:#fff;margin:0;font-size:24px;">⭐ Estrella Tour</h1>
+      <p style="color:#fef3c7;margin:8px 0 0;">Pago pendiente</p>
+    </div>
+    <div style="padding:40px;">
+      <p style="color:#374151;font-size:16px;">Hola <strong>${r.user.nombre}</strong>,</p>
+      <p style="color:#374151;">Tu reserva del <strong>${fecha} a las ${hora} hs</strong> (${r.viaje.origen} → ${r.viaje.destino}) todavía figura como <strong>sin pagar</strong>.</p>
+      <p style="color:#374151;">Quedan menos de <strong>24 horas</strong> para el viaje. Abonalo antes de que se cancele automáticamente.</p>
+      <div style="text-align:center;margin:32px 0;">
+        <a href="${baseUrl}/mis-reservas" style="background:#d97706;color:#fff;padding:14px 32px;border-radius:8px;font-weight:bold;font-size:16px;text-decoration:none;display:inline-block;">Pagar ahora</a>
+      </div>
+    </div>
+    <div style="background:#f9fafb;padding:16px 40px;text-align:center;">
+      <p style="color:#9ca3af;font-size:12px;margin:0;">Estrella Tour — Más de 16 años conectando Mercedes con Buenos Aires</p>
+    </div>
+  </div>
+</body></html>`,
+      });
+      ids24h.push(r.id);
+    } catch { /* continuar */ }
+  }
+
+  for (const r of pendientes12h) {
+    const hora = format(r.viaje.horarioSalida, "HH:mm");
+    const fecha = format(r.viaje.horarioSalida, "d 'de' MMMM", { locale: es });
+    try {
+      await createTransporter().sendMail({
+        from: `"Estrella Tour" <${FROM_EMAIL}>`,
+        to: r.user.email,
+        subject: `🚨 Último aviso: tu reserva vence en 12 hs — ${hora} hs`,
+        html: `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;background:#f4f7fb;margin:0;padding:0;">
+  <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background:#dc2626;padding:32px 40px;text-align:center;">
+      <h1 style="color:#fff;margin:0;font-size:24px;">⭐ Estrella Tour</h1>
+      <p style="color:#fca5a5;margin:8px 0 0;">Último aviso de pago</p>
+    </div>
+    <div style="padding:40px;">
+      <p style="color:#374151;font-size:16px;">Hola <strong>${r.user.nombre}</strong>,</p>
+      <p style="color:#374151;">Tu viaje del <strong>${fecha} a las ${hora} hs</strong> (${r.viaje.origen} → ${r.viaje.destino}) sale en menos de <strong>12 horas</strong> y el pago aún está pendiente.</p>
+      <p style="color:#374151;">Si no abonás a la brevedad, tu lugar puede liberarse.</p>
+      <div style="text-align:center;margin:32px 0;">
+        <a href="${baseUrl}/mis-reservas" style="background:#dc2626;color:#fff;padding:14px 32px;border-radius:8px;font-weight:bold;font-size:16px;text-decoration:none;display:inline-block;">Pagar ahora</a>
+      </div>
+    </div>
+    <div style="background:#f9fafb;padding:16px 40px;text-align:center;">
+      <p style="color:#9ca3af;font-size:12px;margin:0;">Estrella Tour — Más de 16 años conectando Mercedes con Buenos Aires</p>
+    </div>
+  </div>
+</body></html>`,
+      });
+      ids12h.push(r.id);
+    } catch { /* continuar */ }
+  }
+
+  if (ids24h.length > 0) await prisma.reserva.updateMany({ where: { id: { in: ids24h } }, data: { pagoRecordatorio24h: true } });
+  if (ids12h.length > 0) await prisma.reserva.updateMany({ where: { id: { in: ids12h } }, data: { pagoRecordatorio12h: true } });
+
   // Generar viajes faltantes para plantillas recurrentes y auto-reservar pasajeros fijos
   await generarViajesFaltantes().catch(() => {});
 
-  return NextResponse.json({ enviados });
+  return NextResponse.json({ enviados, avisosPago24h: ids24h.length, avisosPago12h: ids12h.length });
 }

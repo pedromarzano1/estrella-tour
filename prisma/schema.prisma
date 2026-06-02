@@ -163,8 +163,10 @@ model Reserva {
   mpPreferenceId  String?
   mpPaymentId     String?
   monto           Float
-  emailEnviado        Boolean         @default(false)
-  recordatorioEnviado Boolean         @default(false)
+  emailEnviado            Boolean         @default(false)
+  recordatorioEnviado     Boolean         @default(false)
+  pagoRecordatorio24h     Boolean         @default(false)
+  pagoRecordatorio12h     Boolean         @default(false)
   creadoEn            DateTime        @default(now())
   actualizadoEn   DateTime        @updatedAt
   canceladaEn     DateTime?

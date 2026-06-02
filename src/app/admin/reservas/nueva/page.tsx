@@ -14,7 +14,7 @@ export default async function NuevaReservaAdminPage({ searchParams }: Props) {
     prisma.viaje.findMany({
       where: { estado: "ACTIVO", horarioSalida: { gte: new Date() } },
       include: {
-        asientos: { where: { estado: "DISPONIBLE" }, orderBy: { numero: "asc" } },
+        asientos: { orderBy: { numero: "asc" } },
         vehiculo: { select: { descripcion: true } },
       },
       orderBy: { horarioSalida: "asc" },
@@ -34,7 +34,7 @@ export default async function NuevaReservaAdminPage({ searchParams }: Props) {
     horarioSalida: v.horarioSalida.toISOString(),
     precio: v.precio,
     vehiculo: v.vehiculo.descripcion,
-    asientos: v.asientos.map((a) => ({ id: a.id, numero: a.numero })),
+    asientos: v.asientos.map((a) => ({ id: a.id, numero: a.numero, disponible: a.estado === "DISPONIBLE" })),
     viajeRecurrenteId: v.viajeRecurrenteId,
   }));
 

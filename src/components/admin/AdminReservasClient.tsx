@@ -115,13 +115,12 @@ export function AdminReservasClient({ reservas, filtroActivo }: Props) {
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Método</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Monto</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Estado Pago</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Reserva</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filtradas.map((r) => (
-                <tr key={r.id} className={`hover:bg-gray-50 ${r.estadoReserva === "CANCELADA" ? "opacity-50" : ""}`}>
+                <tr key={r.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <p className="font-medium text-gray-900">{r.user.nombre}</p>
                     <p className="text-xs text-gray-400">{r.user.email}</p>
@@ -159,14 +158,6 @@ export function AdminReservasClient({ reservas, filtroActivo }: Props) {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={r.estadoReserva === "CONFIRMADA" ? "badge-success" : "badge-danger"}>
-                      {r.estadoReserva === "CONFIRMADA" ? "Activa" : "Cancelada"}
-                    </span>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit" }).format(new Date(r.creadoEn))}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3">
                     {r.estadoReserva === "CONFIRMADA" && (
                       <button
                         onClick={() => cancelarReserva(r.id)}
@@ -181,7 +172,7 @@ export function AdminReservasClient({ reservas, filtroActivo }: Props) {
               ))}
               {filtradas.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="text-center py-10 text-gray-400">Sin resultados</td>
+                  <td colSpan={7} className="text-center py-10 text-gray-400">Sin resultados</td>
                 </tr>
               )}
             </tbody>

@@ -1,12 +1,18 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { Plus } from "lucide-react";
+
+export const dynamic = "force-dynamic";
 import { AdminViajesClient } from "@/components/admin/AdminViajesClient";
 import { AdminViajesRecurrentesClient } from "@/components/admin/AdminViajesRecurrentesClient";
 
 export default async function AdminViajesPage() {
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
   const [viajesRaw, recurrentes] = await Promise.all([
     prisma.viaje.findMany({
+      where: { estado: "ACTIVO", horarioSalida: { gte: hoy } },
       include: {
         vehiculo: { select: { descripcion: true, capacidad: true } },
         _count: { select: { asientos: { where: { estado: "DISPONIBLE" } } } },
@@ -26,14 +32,6 @@ export default async function AdminViajesPage() {
       orderBy: [{ diaSemana: "asc" }, { hora: "asc" }],
     }),
   ]);
-
-  // ACTIVO primero, luego por horario ascendente
-  const ESTADO_ORDER: Record<string, number> = { ACTIVO: 0, CANCELADO: 1, COMPLETADO: 2 };
-  viajesRaw.sort((a, b) => {
-    const diff = (ESTADO_ORDER[a.estado] ?? 3) - (ESTADO_ORDER[b.estado] ?? 3);
-    if (diff !== 0) return diff;
-    return a.horarioSalida.getTime() - b.horarioSalida.getTime();
-  });
 
   const serialized = viajesRaw.map((v) => ({
     ...v,

@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { AdminReservasClient } from "@/components/admin/AdminReservasClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminReservasPage({
   searchParams,
 }: {
@@ -8,12 +10,20 @@ export default async function AdminReservasPage({
 }) {
   const { filtro } = await searchParams;
 
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  const baseWhere = {
+    estadoReserva: "CONFIRMADA" as const,
+    viaje: { horarioSalida: { gte: hoy } },
+  };
+
   const where =
     filtro === "pendiente"
-      ? { estadoReserva: "CONFIRMADA" as const, estadoPago: "PENDIENTE" as const }
+      ? { ...baseWhere, estadoPago: "PENDIENTE" as const }
       : filtro === "aprobado"
-      ? { estadoPago: "APROBADO" as const }
-      : undefined;
+      ? { ...baseWhere, estadoPago: "APROBADO" as const }
+      : baseWhere;
 
   const reservas = await prisma.reserva.findMany({
     where,
@@ -23,7 +33,7 @@ export default async function AdminReservasPage({
       asiento: { select: { numero: true } },
       pago: { select: { mpPaymentId: true, estado: true } },
     },
-    orderBy: { creadoEn: "desc" },
+    orderBy: { viaje: { horarioSalida: "asc" } },
     take: 200,
   });
 

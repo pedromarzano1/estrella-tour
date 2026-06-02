@@ -7,6 +7,7 @@ import { Search, Loader2, CheckCircle, AlertCircle, Repeat } from "lucide-react"
 interface Asiento {
   id: string;
   numero: number;
+  disponible: boolean;
 }
 
 interface Viaje {
@@ -155,7 +156,7 @@ export function NuevaReservaAdminForm({ viajes, usuarioPreseleccionado }: Props)
             const fecha = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }).format(horario);
             return (
               <option key={v.id} value={v.id}>
-                {v.viajeRecurrenteId ? "🔁 " : ""}{v.origen} → {v.destino} — {fecha} ({v.asientos.length} asientos disp.)
+                {v.viajeRecurrenteId ? "🔁 " : ""}{v.origen} → {v.destino} — {fecha} ({v.asientos.filter((a) => a.disponible).length} asientos disp.)
               </option>
             );
           })}
@@ -194,25 +195,35 @@ export function NuevaReservaAdminForm({ viajes, usuarioPreseleccionado }: Props)
           <h2 className="font-bold text-lg text-brand-900 mb-2">3. Asiento</h2>
           <p className="text-sm text-gray-500 mb-4">{viajeSeleccionado.vehiculo}</p>
 
-          {viajeSeleccionado.asientos.length === 0 ? (
+          {viajeSeleccionado.asientos.every((a) => !a.disponible) ? (
             <p className="text-red-600 text-sm">No hay asientos disponibles en este viaje.</p>
           ) : (
-            <div className="flex flex-wrap gap-2">
-              {viajeSeleccionado.asientos.map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  onClick={() => setAsientoId(asientoId === a.id ? "" : a.id)}
-                  className={`w-12 h-12 rounded-lg font-bold text-sm border-2 transition-all ${
-                    asientoId === a.id
-                      ? "bg-yellow-400 border-yellow-500 text-brand-900 scale-105 shadow"
-                      : "bg-brand-700 border-brand-800 text-white hover:bg-brand-600"
-                  }`}
-                >
-                  {a.numero}
-                </button>
-              ))}
-            </div>
+            <>
+              <div className="flex items-center gap-4 mb-3 text-xs text-gray-500">
+                <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded bg-brand-700 inline-block" /> Disponible</span>
+                <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded bg-amber-400 inline-block" /> Ocupado</span>
+                <span className="flex items-center gap-1.5"><span className="w-4 h-4 rounded bg-green-500 inline-block" /> Seleccionado</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {viajeSeleccionado.asientos.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    disabled={!a.disponible}
+                    onClick={() => a.disponible && setAsientoId(asientoId === a.id ? "" : a.id)}
+                    className={`w-12 h-12 rounded-lg font-bold text-sm border-2 transition-all ${
+                      asientoId === a.id
+                        ? "bg-green-500 border-green-600 text-white scale-105 shadow"
+                        : !a.disponible
+                        ? "bg-amber-400 border-amber-500 text-amber-900 cursor-not-allowed"
+                        : "bg-brand-700 border-brand-800 text-white hover:bg-brand-600"
+                    }`}
+                  >
+                    {a.numero}
+                  </button>
+                ))}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -227,7 +238,7 @@ export function NuevaReservaAdminForm({ viajes, usuarioPreseleccionado }: Props)
           <div className="text-sm text-brand-700 space-y-1 mb-4">
             <p>👤 <strong>{usuario.nombre}</strong></p>
             <p>🗺️ {viajeSeleccionado.origen} → {viajeSeleccionado.destino}</p>
-            <p>💺 Asiento N° {viajeSeleccionado.asientos.find((a) => a.id === asientoId)?.numero}</p>
+            <p>💺 Asiento N° {viajeSeleccionado.asientos.find((a) => a.id === asientoId && a.disponible)?.numero}</p>
             <p>💵 Método: <strong>Pago en la oficina</strong></p>
             {esFijo && <p>🔁 <strong>Pasajero fijo</strong> — se auto-reservará cada semana</p>}
           </div>
