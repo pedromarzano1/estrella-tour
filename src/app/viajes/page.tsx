@@ -87,7 +87,7 @@ export default async function ViajesPage() {
                       </div>
                       <div className="flex-1" />
                       <div className="text-right">
-                        <p className="text-xs text-gray-400">{formatearFecha(viaje.horarioSalida)}</p>
+                        <p className="text-sm font-semibold text-gray-900">{formatearFecha(viaje.horarioSalida)}</p>
                       </div>
                     </div>
 
