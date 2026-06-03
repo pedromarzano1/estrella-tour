@@ -23,13 +23,13 @@ export default async function HomePage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-[#179778]/20 border border-[#179778]/40 text-[#179778] px-4 py-1.5 rounded-full text-sm font-medium mb-6">
-              <Star className="w-4 h-4 fill-[#179778] text-[#179778]" />
+            <div className="inline-flex items-center gap-2 bg-[#267a11]/20 border border-[#267a11]/40 text-[#267a11] px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+              <Star className="w-4 h-4 fill-[#267a11] text-[#267a11]" />
               Más de 16 años de confianza
             </div>
             <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
               Viajá con
-              <span className="text-[#179778]"> Estrella Tour</span>
+              <span className="text-[#267a11]"> Estrella Tour</span>
             </h1>
             <p className="text-xl text-brand-200 mb-10 leading-relaxed">
               Conectamos Mercedes con Buenos Aires todos los días.
