@@ -13,50 +13,45 @@ export function Navbar({ user }: NavbarProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="bg-white text-slate-800 shadow-md sticky top-0 z-40 border-b-2 border-red-600">
+    <nav className="bg-slate-900 text-white shadow-lg sticky top-0 z-40 border-b-2 border-red-600">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative flex items-center justify-between h-16">
-          {/* Logo centrado */}
-          <div className="absolute left-1/2 -translate-x-1/2">
-            <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-              <LogoEstrella />
-            </Link>
-          </div>
-
-          {/* Espacio izquierdo vacío para equilibrar */}
-          <div className="hidden md:block w-32" />
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <LogoEstrella />
+          </Link>
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/viajes" className="hover:text-green-700 transition-colors font-medium">
+            <Link href="/viajes" className="hover:text-yellow-300 transition-colors font-medium">
               Ver Viajes
             </Link>
             {user ? (
               <>
                 {user.rol !== "ADMIN" && (
                   <>
-                    <Link href="/mis-reservas" className="hover:text-green-700 transition-colors font-medium">
+                    <Link href="/mis-reservas" className="hover:text-yellow-300 transition-colors font-medium">
                       Mis Reservas
                     </Link>
-                    <Link href="/mi-cuenta" className="hover:text-green-700 transition-colors font-medium">
+                    <Link href="/mi-cuenta" className="hover:text-yellow-300 transition-colors font-medium">
                       Mi Cuenta
                     </Link>
                   </>
                 )}
                 {user.rol === "ADMIN" && (
-                  <Link href="/admin" className="hover:text-green-700 transition-colors font-medium">
+                  <Link href="/admin" className="hover:text-yellow-300 transition-colors font-medium">
                     Admin
                   </Link>
                 )}
                 <div className="flex items-center gap-3 ml-2">
-                  <span className="text-slate-500 text-sm flex items-center gap-1">
+                  <span className="text-slate-300 text-sm flex items-center gap-1">
                     <User className="w-4 h-4" />
                     {user.nombre.split(" ")[0]}
                   </span>
                   <form action="/api/auth/logout" method="POST">
                     <button
                       type="submit"
-                      className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                      className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
                       Salir
@@ -66,7 +61,7 @@ export function Navbar({ user }: NavbarProps) {
               </>
             ) : (
               <div className="flex items-center gap-3">
-                <Link href="/login" className="hover:text-green-700 transition-colors font-medium">
+                <Link href="/login" className="hover:text-yellow-300 transition-colors font-medium">
                   Ingresar
                 </Link>
                 <Link
@@ -80,7 +75,7 @@ export function Navbar({ user }: NavbarProps) {
           </div>
 
           {/* Mobile toggle */}
-          <button onClick={() => setOpen(!open)} className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors">
+          <button onClick={() => setOpen(!open)} className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors">
             {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
@@ -88,18 +83,18 @@ export function Navbar({ user }: NavbarProps) {
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden bg-white border-t border-gray-200 px-4 py-4 flex flex-col gap-3">
-          <Link href="/viajes" onClick={() => setOpen(false)} className="font-medium hover:text-green-700">Ver Viajes</Link>
+        <div className="md:hidden bg-slate-800 border-t border-slate-700 px-4 py-4 flex flex-col gap-3">
+          <Link href="/viajes" onClick={() => setOpen(false)} className="font-medium hover:text-yellow-300">Ver Viajes</Link>
           {user ? (
             <>
               {user.rol !== "ADMIN" && (
                 <>
-                  <Link href="/mis-reservas" onClick={() => setOpen(false)} className="font-medium hover:text-green-700">Mis Reservas</Link>
-                  <Link href="/mi-cuenta" onClick={() => setOpen(false)} className="font-medium hover:text-green-700">Mi Cuenta</Link>
+                  <Link href="/mis-reservas" onClick={() => setOpen(false)} className="font-medium hover:text-yellow-300">Mis Reservas</Link>
+                  <Link href="/mi-cuenta" onClick={() => setOpen(false)} className="font-medium hover:text-yellow-300">Mi Cuenta</Link>
                 </>
               )}
               {user.rol === "ADMIN" && (
-                <Link href="/admin" onClick={() => setOpen(false)} className="font-medium hover:text-green-700">Panel Admin</Link>
+                <Link href="/admin" onClick={() => setOpen(false)} className="font-medium hover:text-yellow-300">Panel Admin</Link>
               )}
               <form action="/api/auth/logout" method="POST">
                 <button type="submit" className="text-left font-medium text-red-600">Cerrar sesión</button>
@@ -107,8 +102,8 @@ export function Navbar({ user }: NavbarProps) {
             </>
           ) : (
             <>
-              <Link href="/login" onClick={() => setOpen(false)} className="font-medium hover:text-green-700">Ingresar</Link>
-              <Link href="/registro" onClick={() => setOpen(false)} className="font-medium hover:text-green-700">Registrarse</Link>
+              <Link href="/login" onClick={() => setOpen(false)} className="font-medium hover:text-yellow-300">Ingresar</Link>
+              <Link href="/registro" onClick={() => setOpen(false)} className="font-medium hover:text-yellow-300">Registrarse</Link>
             </>
           )}
         </div>
