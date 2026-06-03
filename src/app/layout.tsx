@@ -9,11 +9,11 @@ export const metadata: Metadata = {
   keywords: "estrella tour, mercedes buenos aires, colectivo, micro, reservas online",
   icons: {
     icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/logo-estrella.webp", type: "image/webp" },
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
     ],
-    apple: "/icon-192.png",
-    shortcut: "/icon.svg",
+    apple: "/logo-estrella.webp",
+    shortcut: "/logo-estrella.webp",
   },
   openGraph: {
     title: "Estrella Tour",
