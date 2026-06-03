@@ -66,7 +66,7 @@ export function Navbar({ user }: NavbarProps) {
                 </Link>
                 <Link
                   href="/registro"
-                  className="bg-accent-500 text-white hover:bg-accent-400 font-semibold px-5 py-2.5 rounded-lg transition-colors text-sm"
+                  className="bg-accent-700 text-white hover:bg-accent-600 font-semibold px-5 py-2.5 rounded-lg transition-colors text-sm"
                 >
                   Registrarse
                 </Link>
