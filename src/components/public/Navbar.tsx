@@ -15,11 +15,16 @@ export function Navbar({ user }: NavbarProps) {
   return (
     <nav className="bg-white text-slate-800 shadow-md sticky top-0 z-40 border-b-2 border-red-600">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <LogoEstrella />
-          </Link>
+        <div className="relative flex items-center justify-between h-16">
+          {/* Logo centrado */}
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+              <LogoEstrella />
+            </Link>
+          </div>
+
+          {/* Espacio izquierdo vacío para equilibrar */}
+          <div className="hidden md:block w-32" />
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
