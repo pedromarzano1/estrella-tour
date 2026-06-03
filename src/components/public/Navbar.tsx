@@ -15,10 +15,10 @@ export function Navbar({ user }: NavbarProps) {
   return (
     <nav className="bg-white text-slate-800 shadow-md sticky top-0 z-40 border-b-2 border-red-600">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <Image src="/logo-estrella.webp" alt="Estrella Tour" width={240} height={78} className="h-16 w-auto" />
+            <Image src="/logo-estrella.png" alt="Estrella Tour" width={244} height={88} className="h-14 w-auto" />
           </Link>
 
           {/* Desktop nav */}
