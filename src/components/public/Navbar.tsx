@@ -18,7 +18,7 @@ export function Navbar({ user }: NavbarProps) {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <Image src="/logo-estrella.webp" alt="Estrella Tour" width={200} height={65} className="h-14 w-auto" />
+            <Image src="/logo-estrella.webp" alt="Estrella Tour" width={240} height={78} className="h-16 w-auto" />
           </Link>
 
           {/* Desktop nav */}
