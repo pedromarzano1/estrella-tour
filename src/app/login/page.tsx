@@ -4,7 +4,7 @@ import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import Image from "next/image";
+import { LogoEstrella } from "@/components/icons/LogoEstrella";
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -41,8 +41,8 @@ function LoginContent() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-brand-900 to-accent-900 px-4">
       <div className="w-full max-w-md">
-        <Link href="/" className="flex items-center justify-center mb-8 hover:opacity-90 transition-opacity">
-          <Image src="/logo-estrella.webp" alt="Estrella Tour" width={160} height={52} className="h-14 w-auto" />
+        <Link href="/" className="flex items-center justify-center mb-8 hover:opacity-80 transition-opacity">
+          <LogoEstrella />
         </Link>
 
         <div className="bg-white rounded-2xl shadow-2xl p-8">

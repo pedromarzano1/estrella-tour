@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Loader2, CheckCircle, ArrowLeft } from "lucide-react";
-import Image from "next/image";
+import { LogoEstrella } from "@/components/icons/LogoEstrella";
 
 export default function OlvideContrasenaPage() {
   const [email, setEmail] = useState("");
@@ -29,8 +29,8 @@ export default function OlvideContrasenaPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-brand-900 to-accent-900 px-4">
       <div className="w-full max-w-md">
-        <Link href="/" className="flex items-center justify-center mb-8 hover:opacity-90 transition-opacity">
-          <Image src="/logo-estrella.webp" alt="Estrella Tour" width={160} height={52} className="h-14 w-auto" />
+        <Link href="/" className="flex items-center justify-center mb-8 hover:opacity-80 transition-opacity">
+          <LogoEstrella />
         </Link>
 
         <div className="bg-white rounded-2xl shadow-2xl p-8">

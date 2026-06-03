@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { WhatsAppFloat } from "@/components/public/WhatsAppFloat";
+import { Lobster } from "next/font/google";
+
+const lobster = Lobster({ weight: "400", subsets: ["latin"], variable: "--font-lobster" });
 
 export const metadata: Metadata = {
   title: "Estrella Tour — Reservas Online",
@@ -38,7 +41,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" className={lobster.variable}>
       <head>
         <meta name="theme-color" content="#0ea5e9" />
         <meta name="mobile-web-app-capable" content="yes" />

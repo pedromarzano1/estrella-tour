@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, X, LogOut, User } from "lucide-react";
-import Image from "next/image";
+import { LogoEstrella } from "@/components/icons/LogoEstrella";
 
 interface NavbarProps {
   user?: { nombre: string; rol: string } | null;
@@ -18,7 +18,7 @@ export function Navbar({ user }: NavbarProps) {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <Image src="/logo-estrella.png" alt="Estrella Tour" width={244} height={88} className="h-14 w-auto" />
+            <LogoEstrella />
           </Link>
 
           {/* Desktop nav */}
