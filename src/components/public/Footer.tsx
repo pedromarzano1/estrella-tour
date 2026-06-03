@@ -1,4 +1,5 @@
-import { Star, Phone, Mail, Clock } from "lucide-react";
+import { Phone, Mail, Clock } from "lucide-react";
+import Image from "next/image";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import Link from "next/link";
 
@@ -9,9 +10,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-2 font-bold text-xl mb-3">
-              <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-              <span>Estrella Tour</span>
+            <div className="mb-3">
+              <Image src="/logo-estrella.webp" alt="Estrella Tour" width={130} height={43} className="h-10 w-auto" />
             </div>
             <p className="text-slate-300 text-sm leading-relaxed">
               Más de 16 años conectando Mercedes con Buenos Aires. Viajá con comodidad y seguridad.

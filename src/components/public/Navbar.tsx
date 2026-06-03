@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X, Star, LogOut, User } from "lucide-react";
+import { Menu, X, LogOut, User } from "lucide-react";
+import Image from "next/image";
 
 interface NavbarProps {
   user?: { nombre: string; rol: string } | null;
@@ -16,9 +17,8 @@ export function Navbar({ user }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl hover:opacity-90 transition-opacity">
-            <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
-            <span>Estrella Tour</span>
+          <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
+            <Image src="/logo-estrella.webp" alt="Estrella Tour" width={140} height={46} className="h-10 w-auto" />
           </Link>
 
           {/* Desktop nav */}

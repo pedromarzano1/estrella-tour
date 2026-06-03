@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { getSession, isAdmin } from "@/lib/auth";
 import Link from "next/link";
-import { Star, LayoutDashboard, Bus, MapPin, Users, LogOut, TicketCheck, UserCog } from "lucide-react";
+import { LayoutDashboard, Bus, MapPin, Users, LogOut, TicketCheck, UserCog } from "lucide-react";
+import Image from "next/image";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await getSession();
@@ -12,9 +13,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       {/* Sidebar */}
       <aside className="w-64 bg-slate-900 text-white flex flex-col shadow-xl shrink-0">
         <div className="p-6 border-b border-slate-800">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-            Estrella Tour
+          <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
+            <Image src="/logo-estrella.webp" alt="Estrella Tour" width={130} height={43} className="h-9 w-auto" />
           </Link>
           <p className="text-slate-400 text-xs mt-1">Panel de Administración</p>
         </div>
