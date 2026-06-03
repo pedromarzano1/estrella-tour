@@ -163,7 +163,7 @@ export default async function HomePage() {
           <p className="text-brand-200 mb-8">Elegí tu viaje y reservá tu asiento en menos de 2 minutos.</p>
           <Link
             href="/viajes"
-            className="inline-block bg-accent-500 hover:bg-accent-400 text-white font-bold px-10 py-4 rounded-xl text-lg transition-all hover:scale-105"
+            className="inline-block bg-accent-700 hover:bg-accent-600 text-white font-bold px-10 py-4 rounded-xl text-lg transition-all hover:scale-105"
           >
             Reservar Ahora
           </Link>
