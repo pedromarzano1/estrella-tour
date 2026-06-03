@@ -7,6 +7,14 @@ export const metadata: Metadata = {
   description:
     "Reservá tu asiento en línea. Viajes diarios entre Mercedes y Buenos Aires. Más de 16 años de confianza.",
   keywords: "estrella tour, mercedes buenos aires, colectivo, micro, reservas online",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/icon-192.png",
+    shortcut: "/icon.svg",
+  },
   openGraph: {
     title: "Estrella Tour",
     description: "Viajes entre Mercedes y Buenos Aires. Reservás online en minutos.",
