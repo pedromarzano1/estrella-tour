@@ -22,7 +22,7 @@ export default async function HomePage() {
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent-400 rounded-full translate-x-1/2 translate-y-1/2 blur-3xl" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
-          <div className="max-w-3xl">
+          <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-[#179778]/20 border border-[#179778]/40 text-[#179778] px-4 py-1.5 rounded-full text-sm font-medium mb-6">
               <Star className="w-4 h-4 fill-[#179778] text-[#179778]" />
               Más de 16 años de confianza
@@ -35,7 +35,7 @@ export default async function HomePage() {
               Conectamos Mercedes con Buenos Aires todos los días.
               Reservá tu asiento online en minutos y pagá como quieras.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/viajes"
                 className="bg-white hover:bg-gray-100 text-slate-900 font-bold px-8 py-4 rounded-xl text-lg transition-all duration-200 hover:scale-105 text-center shadow-lg"
