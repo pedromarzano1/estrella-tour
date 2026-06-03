@@ -15,10 +15,10 @@ export function Navbar({ user }: NavbarProps) {
   return (
     <nav className="bg-white text-slate-800 shadow-md sticky top-0 z-40 border-b-2 border-red-600">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <Image src="/logo-estrella.webp" alt="Estrella Tour" width={160} height={52} className="h-11 w-auto" />
+            <Image src="/logo-estrella.webp" alt="Estrella Tour" width={200} height={65} className="h-14 w-auto" />
           </Link>
 
           {/* Desktop nav */}
@@ -51,7 +51,7 @@ export function Navbar({ user }: NavbarProps) {
                   <form action="/api/auth/logout" method="POST">
                     <button
                       type="submit"
-                      className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                      className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
                       Salir
@@ -66,7 +66,7 @@ export function Navbar({ user }: NavbarProps) {
                 </Link>
                 <Link
                   href="/registro"
-                  className="bg-accent-500 text-white hover:bg-accent-400 font-semibold px-4 py-2 rounded-lg transition-colors text-sm"
+                  className="bg-accent-500 text-white hover:bg-accent-400 font-semibold px-5 py-2.5 rounded-lg transition-colors text-sm"
                 >
                   Registrarse
                 </Link>
