@@ -134,7 +134,7 @@ export default async function HomePage() {
           <WhatsAppIcon className="w-14 h-14 mx-auto mb-4 opacity-90" />
           <h2 className="text-3xl font-bold mb-4">¿Preferís reservar por WhatsApp?</h2>
           <p className="text-accent-100 text-lg mb-8 max-w-2xl mx-auto">
-            Nuestro equipo te ayuda con la reserva por mensaje. Escribinos y nos encargamos de todo.
+            Nuestro equipo te ayuda con la reserva por mensaje.<br />Escribinos y nos encargamos de todo.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {[
