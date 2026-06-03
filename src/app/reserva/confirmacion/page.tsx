@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { CheckCircle, XCircle, Clock, MessageCircle, Star, ArrowRight } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Star, ArrowRight } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { formatearFecha, formatearHora, formatearPrecio } from "@/lib/utils";
 import { Navbar } from "@/components/public/Navbar";
 import { Footer } from "@/components/public/Footer";
@@ -197,7 +198,7 @@ export default async function ConfirmacionPage({ searchParams }: Props) {
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 text-sm font-medium"
               >
-                <MessageCircle className="w-4 h-4" />
+                <WhatsAppIcon className="w-4 h-4" />
                 Escribinos por WhatsApp
               </a>
             </div>

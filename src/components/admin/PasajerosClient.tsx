@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { MessageCircle, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 interface Pasajero {
   id: string;
@@ -88,7 +89,7 @@ export function PasajerosClient({ reservas, viajeId }: Props) {
                       rel="noreferrer"
                       className="flex items-center gap-1 text-xs text-green-600 hover:underline"
                     >
-                      <MessageCircle className="w-3 h-3" />
+                      <WhatsAppIcon className="w-3 h-3" />
                       {r.user.telefono}
                     </a>
                   ) : (

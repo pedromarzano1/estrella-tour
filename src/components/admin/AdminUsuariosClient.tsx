@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, UserPlus, MessageCircle, TicketCheck, X, Loader2, CheckCircle } from "lucide-react";
+import { Search, UserPlus, TicketCheck, X, Loader2, CheckCircle } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 interface Usuario {
   id: string;
@@ -189,7 +190,7 @@ export function AdminUsuariosClient({ usuarios: inicial }: Props) {
                         rel="noreferrer"
                         className="flex items-center gap-1 text-xs text-green-600 hover:underline"
                       >
-                        <MessageCircle className="w-3 h-3" />
+                        <WhatsAppIcon className="w-3 h-3" />
                         {u.telefono}
                       </a>
                     ) : (

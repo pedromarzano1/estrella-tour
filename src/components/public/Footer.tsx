@@ -1,4 +1,5 @@
-import { Star, Phone, Mail, Clock, MessageCircle } from "lucide-react";
+import { Star, Phone, Mail, Clock } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import Link from "next/link";
 
 export function Footer() {
@@ -22,15 +23,15 @@ export function Footer() {
             <h3 className="font-semibold text-lg mb-4">Contacto</h3>
             <ul className="space-y-3 text-slate-300 text-sm">
               <li className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                <WhatsAppIcon className="w-4 h-4 text-green-400 flex-shrink-0" />
                 <a href="https://wa.me/542324504000" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">2324-504000</a>
               </li>
               <li className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                <WhatsAppIcon className="w-4 h-4 text-green-400 flex-shrink-0" />
                 <a href="https://wa.me/542324560139" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">2324-560139</a>
               </li>
               <li className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                <WhatsAppIcon className="w-4 h-4 text-green-400 flex-shrink-0" />
                 <a href="https://wa.me/541122663000" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">11-22663000</a>
               </li>
               <li className="flex items-center gap-2">

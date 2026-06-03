@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Shield, Clock, Star, MessageCircle, MapPin, CreditCard, CheckCircle, Bus } from "lucide-react";
+import { Shield, Clock, Star, MapPin, CreditCard, CheckCircle, Bus } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { Navbar } from "@/components/public/Navbar";
 import { Footer } from "@/components/public/Footer";
 import { getSession } from "@/lib/auth";
@@ -47,7 +48,7 @@ export default async function HomePage() {
                 rel="noreferrer"
                 className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all duration-200"
               >
-                <MessageCircle className="w-5 h-5 text-green-400" />
+                <WhatsAppIcon className="w-5 h-5 text-green-400" />
                 Consultar por WhatsApp
               </a>
             </div>
@@ -101,7 +102,7 @@ export default async function HomePage() {
                 color: "bg-purple-50 text-purple-600",
               },
               {
-                icon: MessageCircle,
+                icon: WhatsAppIcon,
                 title: "Atención por WhatsApp",
                 desc: "¿Preferís reservar por mensaje? Escribinos a cualquiera de nuestros números de WhatsApp.",
                 color: "bg-green-50 text-green-600",
@@ -134,7 +135,7 @@ export default async function HomePage() {
       {/* CTA WhatsApp para adultos mayores */}
       <section className="py-16 bg-accent-700 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <MessageCircle className="w-14 h-14 mx-auto mb-4 opacity-90" />
+          <WhatsAppIcon className="w-14 h-14 mx-auto mb-4 opacity-90" />
           <h2 className="text-3xl font-bold mb-4">¿Preferís reservar por WhatsApp?</h2>
           <p className="text-accent-100 text-lg mb-8 max-w-2xl mx-auto">
             Nuestro equipo te ayuda con la reserva por mensaje. Escribinos y nos encargamos de todo.

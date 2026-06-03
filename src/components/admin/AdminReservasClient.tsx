@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, X, MessageCircle } from "lucide-react";
+import { Search, X } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 interface Reserva {
   id: string;
@@ -131,7 +132,7 @@ export function AdminReservasClient({ reservas, filtroActivo }: Props) {
                         rel="noreferrer"
                         className="text-xs text-green-600 flex items-center gap-1 mt-0.5 hover:underline"
                       >
-                        <MessageCircle className="w-3 h-3" />
+                        <WhatsAppIcon className="w-3 h-3" />
                         {r.user.telefono}
                       </a>
                     )}

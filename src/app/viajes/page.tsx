@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MapPin, Clock, Bus, ArrowRight, Calendar } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { Navbar } from "@/components/public/Navbar";
 import { Footer } from "@/components/public/Footer";
 import { getSession } from "@/lib/auth";
@@ -137,10 +138,10 @@ export default async function ViajesPage() {
                         href={`https://wa.me/542324504000?text=${encodeURIComponent(`Hola! Quisiera reservar el viaje del ${formatearFecha(viaje.horarioSalida)} a las ${formatearHora(viaje.horarioSalida)} de ${viaje.origen} a ${viaje.destino}.`)}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="px-3 py-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
+                        className="px-3 py-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors flex items-center justify-center"
                         title="Reservar por WhatsApp"
                       >
-                        💬
+                        <WhatsAppIcon className="w-5 h-5" />
                       </a>
                     </div>
                   </div>
