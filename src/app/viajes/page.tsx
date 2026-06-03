@@ -55,7 +55,7 @@ export default async function ViajesPage() {
                 return (
                   <div
                     key={viaje.id}
-                    className={`card hover:shadow-lg transition-all duration-200 flex flex-col ${agotado ? "opacity-75" : ""}`}
+                    className={`card hover:shadow-lg transition-all duration-200 flex flex-col bg-brand-50 border border-brand-200 ${agotado ? "opacity-75" : ""}`}
                   >
                     {/* Ruta */}
                     <div className="flex items-center gap-2 mb-4">
