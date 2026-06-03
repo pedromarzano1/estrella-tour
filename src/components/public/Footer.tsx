@@ -10,8 +10,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
           <div>
-            <div className="mb-3">
-              <Image src="/logo-estrella.webp" alt="Estrella Tour" width={130} height={43} className="h-10 w-auto" />
+            <div className="mb-3 inline-block bg-white rounded-lg px-3 py-1">
+              <Image src="/logo-estrella.webp" alt="Estrella Tour" width={160} height={52} className="h-11 w-auto" />
             </div>
             <p className="text-slate-300 text-sm leading-relaxed">
               Más de 16 años conectando Mercedes con Buenos Aires. Viajá con comodidad y seguridad.

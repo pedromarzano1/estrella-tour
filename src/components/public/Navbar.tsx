@@ -18,7 +18,9 @@ export function Navbar({ user }: NavbarProps) {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
-            <Image src="/logo-estrella.webp" alt="Estrella Tour" width={140} height={46} className="h-10 w-auto" />
+            <div className="bg-white rounded-lg px-3 py-1">
+              <Image src="/logo-estrella.webp" alt="Estrella Tour" width={160} height={52} className="h-10 w-auto" />
+            </div>
           </Link>
 
           {/* Desktop nav */}
