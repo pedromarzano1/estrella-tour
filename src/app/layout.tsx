@@ -18,7 +18,15 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Estrella Tour",
     description: "Viajes entre Mercedes y Buenos Aires. Reservás online en minutos.",
-    url: "https://estrellatour.com.ar",
+    url: "https://estrella-tour.vercel.app",
+    images: [
+      {
+        url: "https://estrella-tour.vercel.app/logo-estrella.webp",
+        width: 400,
+        height: 200,
+        alt: "Estrella Tour",
+      },
+    ],
   },
   manifest: "/manifest.json",
   appleWebApp: {
