@@ -20,6 +20,7 @@ export default async function AdminViajesPage() {
       orderBy: { horarioSalida: "asc" },
     }),
     prisma.viajeRecurrente.findMany({
+      where: { activo: true },
       include: {
         vehiculo: { select: { descripcion: true, capacidad: true } },
         _count: {
