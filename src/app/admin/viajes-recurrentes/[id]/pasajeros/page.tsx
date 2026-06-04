@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { ArrowLeft, MapPin, Clock, Download, Users, Repeat } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Download, Users, Repeat, ExternalLink } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { formatearFecha, formatearHora } from "@/lib/utils";
+import { PasajerosClient } from "@/components/admin/PasajerosClient";
+
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -13,18 +15,6 @@ const DIAS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
 export const dynamic = "force-dynamic";
 
-const BADGE: Record<string, string> = {
-  APROBADO: "badge-success",
-  PENDIENTE: "badge-warning",
-  EN_PROCESO: "badge-blue",
-  RECHAZADO: "badge-danger",
-};
-const LABEL: Record<string, string> = {
-  APROBADO: "✅ Pagado",
-  PENDIENTE: "⏳ Pendiente",
-  EN_PROCESO: "🔄 En proceso",
-  RECHAZADO: "❌ Rechazado",
-};
 
 export default async function PasajerosRecurrentePage({ params }: Props) {
   const { id } = await params;
@@ -44,6 +34,7 @@ export default async function PasajerosRecurrentePage({ params }: Props) {
             include: {
               user: { select: { nombre: true, email: true, telefono: true } },
               asiento: { select: { numero: true } },
+              pago: { select: { mpPaymentId: true, estado: true } },
             },
             orderBy: { asiento: { numero: "asc" } },
           },
@@ -141,6 +132,13 @@ export default async function PasajerosRecurrentePage({ params }: Props) {
                   <span className={`text-xs font-semibold ${viaje.reservas.length === 0 ? "text-gray-400" : "text-brand-700"}`}>
                     {viaje.reservas.length} pasajero{viaje.reservas.length !== 1 ? "s" : ""}
                   </span>
+                  <Link
+                    href={`/admin/viajes/${viaje.id}/pasajeros`}
+                    className="flex items-center gap-1 text-xs px-2.5 py-1.5 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Ver detalle
+                  </Link>
                   {viaje.reservas.length > 0 && (
                     <a
                       href={`/api/admin/viajes/${viaje.id}/pasajeros/excel`}
@@ -153,41 +151,19 @@ export default async function PasajerosRecurrentePage({ params }: Props) {
                 </div>
               </div>
 
-              {viaje.reservas.length === 0 ? (
-                <p className="px-4 py-3 text-sm text-gray-400">Sin reservas confirmadas.</p>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead className="border-b border-gray-100">
-                    <tr>
-                      <th className="text-left px-4 py-2 font-medium text-gray-500 text-xs">Asiento</th>
-                      <th className="text-left px-4 py-2 font-medium text-gray-500 text-xs">Pasajero</th>
-                      <th className="text-left px-4 py-2 font-medium text-gray-500 text-xs">Contacto</th>
-                      <th className="text-left px-4 py-2 font-medium text-gray-500 text-xs">Pago</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {viaje.reservas.map((r) => (
-                      <tr key={r.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2.5 font-bold text-brand-800 text-center">{r.asiento.numero}</td>
-                        <td className="px-4 py-2.5">
-                          <p className="font-medium text-gray-900">{r.user.nombre}</p>
-                          <p className="text-xs text-gray-400">{r.user.email}</p>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          {r.user.telefono ? (
-                            <a href={`https://wa.me/${r.user.telefono.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${r.user.nombre}, te contactamos de Estrella Tour.`)}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-green-600 hover:underline">
-                              <WhatsAppIcon className="w-3 h-3" />{r.user.telefono}
-                            </a>
-                          ) : <span className="text-xs text-gray-400">Sin teléfono</span>}
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <span className={BADGE[r.estadoPago] ?? "badge-gray"}>{LABEL[r.estadoPago] ?? r.estadoPago}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+              <PasajerosClient
+                viajeId={viaje.id}
+                reservas={viaje.reservas.map((r) => ({
+                  id: r.id,
+                  estadoPago: r.estadoPago,
+                  metodoPago: r.metodoPago,
+                  monto: r.monto,
+                  creadoEn: r.creadoEn.toISOString(),
+                  user: r.user,
+                  asientoNumero: r.asiento.numero,
+                  mpPaymentId: r.pago?.mpPaymentId ?? null,
+                }))}
+              />
             </div>
           ))
         )}
