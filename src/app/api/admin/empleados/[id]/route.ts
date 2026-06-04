@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/db";
-import { getSessionFromRequest } from "@/lib/auth";
+import { getSessionFromRequest, hashPassword } from "@/lib/auth";
 import { enviarBienvenidaEmpleado } from "@/lib/email";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -21,6 +21,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!empleado) return NextResponse.json({ error: "Empleado no encontrado" }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
+
+  // Cambiar contraseña
+  if (body.nuevaContrasena) {
+    if (typeof body.nuevaContrasena !== "string" || body.nuevaContrasena.length < 6) {
+      return NextResponse.json({ error: "La contraseña debe tener al menos 6 caracteres" }, { status: 400 });
+    }
+    const passwordHash = await hashPassword(body.nuevaContrasena);
+    await prisma.user.update({ where: { id }, data: { passwordHash } });
+    await prisma.session.deleteMany({ where: { userId: id } });
+    return NextResponse.json({ ok: true, accion: "contrasena_cambiada" });
+  }
 
   // Reenviar email de activación
   if (body.reenviarActivacion) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { UserPlus, X, Loader2, CheckCircle, ShieldCheck, ShieldOff, Mail } from "lucide-react";
+import { UserPlus, X, Loader2, CheckCircle, ShieldCheck, ShieldOff, Mail, KeyRound } from "lucide-react";
 
 interface Empleado {
   id: string;
@@ -25,6 +25,8 @@ export function AdminEmpleadosClient({ empleados: inicial }: Props) {
   const [exito, setExito] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [linkActivacion, setLinkActivacion] = useState<string | null>(null);
+  const [cambioPass, setCambioPass] = useState<string | null>(null);
+  const [nuevaPass, setNuevaPass] = useState("");
 
   async function handleCrear(e: React.FormEvent) {
     e.preventDefault();
@@ -64,6 +66,26 @@ export function AdminEmpleadosClient({ empleados: inicial }: Props) {
     const data = await res.json();
     if (res.ok) {
       setLista((prev) => prev.map((e) => (e.id === id ? { ...e, activo: data.empleado.activo } : e)));
+    }
+    setAccion(null);
+  }
+
+  async function cambiarContrasena(id: string) {
+    if (nuevaPass.length < 6) { setError("La contraseña debe tener al menos 6 caracteres"); return; }
+    setAccion(`pass-${id}`);
+    setError(null);
+    const res = await fetch(`/api/admin/empleados/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nuevaContrasena: nuevaPass }),
+    });
+    if (res.ok) {
+      setExito("Contraseña cambiada correctamente.");
+      setCambioPass(null);
+      setNuevaPass("");
+    } else {
+      const data = await res.json();
+      setError(data.error ?? "Error al cambiar la contraseña");
     }
     setAccion(null);
   }
@@ -213,33 +235,65 @@ export function AdminEmpleadosClient({ empleados: inicial }: Props) {
               </div>
             </div>
 
-            {!e.soyYo && (
-              <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Cambiar contraseña — disponible para todos incluso soyYo */}
+              <button
+                onClick={() => { setCambioPass(cambioPass === e.id ? null : e.id); setNuevaPass(""); setError(null); }}
+                className="flex items-center gap-1.5 text-xs px-3 py-2 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 rounded-lg transition-colors"
+                title="Cambiar contraseña"
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+                Contraseña
+              </button>
+
+              {!e.soyYo && (
+                <>
+                  <button
+                    onClick={() => reenviarEmail(e.id)}
+                    disabled={accion === `reenviar-${e.id}`}
+                    className="flex items-center gap-1.5 text-xs px-3 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                    title="Reenviar email de activación"
+                  >
+                    {accion === `reenviar-${e.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+                    Reenviar email
+                  </button>
+                  <button
+                    onClick={() => toggleActivo(e.id)}
+                    disabled={accion === e.id}
+                    className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg transition-colors ${
+                      e.activo ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-green-50 text-green-700 hover:bg-green-100"
+                    }`}
+                  >
+                    {accion === e.id
+                      ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      : e.activo ? <ShieldOff className="w-3.5 h-3.5" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                    {e.activo ? "Desactivar" : "Reactivar"}
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Form cambio de contraseña inline */}
+            {cambioPass === e.id && (
+              <div className="w-full sm:col-span-2 mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-xl flex items-center gap-3">
+                <input
+                  type="password"
+                  className="input flex-1 text-sm py-2"
+                  placeholder="Nueva contraseña (mín. 6 caracteres)"
+                  value={nuevaPass}
+                  onChange={(e) => setNuevaPass(e.target.value)}
+                  autoFocus
+                />
                 <button
-                  onClick={() => reenviarEmail(e.id)}
-                  disabled={accion === `reenviar-${e.id}`}
-                  className="flex items-center gap-1.5 text-xs px-3 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
-                  title="Reenviar email de activación"
+                  onClick={() => cambiarContrasena(e.id)}
+                  disabled={accion === `pass-${e.id}`}
+                  className="flex items-center gap-1.5 text-xs px-3 py-2 bg-yellow-600 text-white hover:bg-yellow-700 rounded-lg transition-colors whitespace-nowrap"
                 >
-                  {accion === `reenviar-${e.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
-                  Reenviar email
+                  {accion === `pass-${e.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <KeyRound className="w-3.5 h-3.5" />}
+                  Guardar
                 </button>
-                <button
-                  onClick={() => toggleActivo(e.id)}
-                  disabled={accion === e.id}
-                  className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg transition-colors ${
-                    e.activo
-                      ? "bg-red-50 text-red-600 hover:bg-red-100"
-                      : "bg-green-50 text-green-700 hover:bg-green-100"
-                  }`}
-                >
-                  {accion === e.id
-                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    : e.activo
-                    ? <ShieldOff className="w-3.5 h-3.5" />
-                    : <ShieldCheck className="w-3.5 h-3.5" />
-                  }
-                  {e.activo ? "Desactivar" : "Reactivar"}
+                <button onClick={() => { setCambioPass(null); setNuevaPass(""); }} className="text-gray-400 hover:text-gray-600">
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             )}

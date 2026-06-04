@@ -39,7 +39,7 @@ export default async function HomePage() {
                 Ver Viajes Disponibles
               </Link>
               <a
-                href="https://wa.me/542324504000"
+                href={`https://wa.me/542324504000?text=${encodeURIComponent("¡Buenas! Quisiera consultar sobre los viajes disponibles.")}`}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all duration-200"

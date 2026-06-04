@@ -1,36 +1,51 @@
 import { prisma } from "@/lib/db";
 import { formatearPrecio } from "@/lib/utils";
-import { TicketCheck, DollarSign, Bus, Users, TrendingUp, AlertCircle } from "lucide-react";
+import { TicketCheck, DollarSign, Bus, TrendingUp, AlertCircle } from "lucide-react";
+
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminDashboard() {
+  const hoy = new Date();
+  const inicioDia = new Date(hoy.setHours(0, 0, 0, 0));
+
   const [
     totalReservas,
     reservasHoy,
     ingresosMp,
-    totalViajes,
     viajesActivos,
     reservasPendientes,
     ultimasReservas,
   ] = await Promise.all([
-    prisma.reserva.count({ where: { estadoReserva: "CONFIRMADA" } }),
+    prisma.reserva.count({
+      where: { estadoReserva: "CONFIRMADA", viaje: { horarioSalida: { gte: new Date() } } },
+    }),
     prisma.reserva.count({
       where: {
         estadoReserva: "CONFIRMADA",
-        creadoEn: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+        creadoEn: { gte: inicioDia },
       },
     }),
     prisma.reserva.aggregate({
       where: { estadoPago: "APROBADO" },
       _sum: { monto: true },
     }),
-    prisma.viaje.count(),
     prisma.viaje.count({ where: { estado: "ACTIVO", horarioSalida: { gte: new Date() } } }),
-    prisma.reserva.count({ where: { estadoReserva: "CONFIRMADA", estadoPago: "PENDIENTE" } }),
+    prisma.reserva.count({
+      where: {
+        estadoReserva: "CONFIRMADA",
+        estadoPago: "PENDIENTE",
+        viaje: { horarioSalida: { gte: new Date() } },
+      },
+    }),
     prisma.reserva.findMany({
       take: 10,
-      orderBy: { creadoEn: "desc" },
-      where: { estadoReserva: "CONFIRMADA" },
+      orderBy: { viaje: { horarioSalida: "asc" } },
+      where: {
+        estadoReserva: "CONFIRMADA",
+        viaje: { horarioSalida: { gte: new Date() } },
+      },
       include: {
         user: { select: { nombre: true, email: true } },
         viaje: { select: { origen: true, destino: true, horarioSalida: true } },
