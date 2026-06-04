@@ -12,6 +12,7 @@ interface Recurrente {
   hora: string;
   precio: number;
   activo: boolean;
+  proximaFecha: string | null;
   vehiculo: { descripcion: string; capacidad: number };
   _count: { viajes: number; pasajerosFijos: number };
 }
@@ -76,6 +77,11 @@ export function AdminViajesRecurrentesClient({ recurrentes: initial }: { recurre
                   <td className="px-4 py-3 text-gray-600">
                     <p className="font-semibold">{DIAS[r.diaSemana]}</p>
                     <p className="text-xs">{r.hora} hs</p>
+                    {r.proximaFecha && (
+                      <p className="text-xs text-brand-600 font-medium mt-0.5">
+                        Próx: {new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit" }).format(new Date(r.proximaFecha))}
+                      </p>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-gray-600 text-xs truncate max-w-[140px]">
                     {r.vehiculo.descripcion}

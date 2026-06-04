@@ -51,27 +51,44 @@ export async function POST(req: NextRequest) {
       });
     });
 
-    // Si es pasajero fijo, registrarlo en el recurrente correspondiente
+    // Si es pasajero fijo, registrarlo y crear reservas en viajes futuros
     if (esFijo && reserva.viaje) {
       const viajeConRecurrente = await prisma.viaje.findUnique({
         where: { id: viajeId },
-        select: { viajeRecurrenteId: true },
+        select: { viajeRecurrenteId: true, horarioSalida: true },
       });
       if (viajeConRecurrente?.viajeRecurrenteId) {
         await prisma.pasajeroFijo.upsert({
-          where: {
-            viajeRecurrenteId_userId: {
-              viajeRecurrenteId: viajeConRecurrente.viajeRecurrenteId,
-              userId,
-            },
-          },
-          create: {
-            viajeRecurrenteId: viajeConRecurrente.viajeRecurrenteId,
-            userId,
-            activo: true,
-          },
+          where: { viajeRecurrenteId_userId: { viajeRecurrenteId: viajeConRecurrente.viajeRecurrenteId, userId } },
+          create: { viajeRecurrenteId: viajeConRecurrente.viajeRecurrenteId, userId, activo: true },
           update: { activo: true },
         });
+
+        // Crear reservas automáticas en viajes futuros del mismo recurrente
+        const viajesFuturos = await prisma.viaje.findMany({
+          where: {
+            viajeRecurrenteId: viajeConRecurrente.viajeRecurrenteId,
+            horarioSalida: { gt: viajeConRecurrente.horarioSalida },
+            estado: "ACTIVO",
+          },
+          include: { asientos: { where: { estado: "DISPONIBLE" }, orderBy: { numero: "asc" } } },
+          orderBy: { horarioSalida: "asc" },
+        });
+
+        const asientoActual = await prisma.asiento.findUnique({ where: { id: asientoId }, select: { numero: true } });
+        const numeroAsiento = asientoActual?.numero ?? 1;
+
+        for (const vf of viajesFuturos) {
+          const yaReservado = await prisma.reserva.findFirst({ where: { userId, viajeId: vf.id, estadoReserva: "CONFIRMADA" } });
+          if (yaReservado) continue;
+          const asientoMismo = vf.asientos.find((a) => a.numero === numeroAsiento);
+          const asientoElegido = asientoMismo ?? vf.asientos[0];
+          if (!asientoElegido) continue;
+          await prisma.asiento.update({ where: { id: asientoElegido.id }, data: { estado: EstadoAsiento.RESERVADO } });
+          await prisma.reserva.create({
+            data: { userId, viajeId: vf.id, asientoId: asientoElegido.id, metodoPago: "EFECTIVO", monto: vf.precio },
+          });
+        }
       }
     }
 

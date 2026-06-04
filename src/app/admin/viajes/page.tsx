@@ -23,6 +23,12 @@ export default async function AdminViajesPage() {
       where: { activo: true },
       include: {
         vehiculo: { select: { descripcion: true, capacidad: true } },
+        viajes: {
+          where: { horarioSalida: { gte: new Date() } },
+          orderBy: { horarioSalida: "asc" },
+          take: 1,
+          select: { horarioSalida: true },
+        },
         _count: {
           select: {
             viajes: { where: { horarioSalida: { gte: new Date() } } },
@@ -52,7 +58,13 @@ export default async function AdminViajesPage() {
       </div>
 
       <AdminViajesClient viajes={serialized} />
-      <AdminViajesRecurrentesClient recurrentes={recurrentes} />
+      <AdminViajesRecurrentesClient recurrentes={recurrentes.map((r) => ({
+        ...r,
+        creadoEn: r.creadoEn.toISOString(),
+        actualizadoEn: r.actualizadoEn.toISOString(),
+        proximaFecha: r.viajes[0]?.horarioSalida.toISOString() ?? null,
+        viajes: [],
+      }))} />
     </div>
   );
 }
