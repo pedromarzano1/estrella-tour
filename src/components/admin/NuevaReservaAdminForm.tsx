@@ -151,15 +151,30 @@ export function NuevaReservaAdminForm({ viajes, usuarioPreseleccionado }: Props)
           required
         >
           <option value="">Seleccioná un viaje...</option>
-          {viajes.map((v) => {
-            const horario = new Date(v.horarioSalida);
-            const fecha = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }).format(horario);
-            return (
-              <option key={v.id} value={v.id}>
-                {v.viajeRecurrenteId ? "🔁 " : ""}{v.origen} → {v.destino} — {fecha} ({v.asientos.filter((a) => a.disponible).length} asientos disp.)
-              </option>
-            );
-          })}
+          {(() => {
+            const grupos = new Map<string, Viaje[]>();
+            for (const v of viajes) {
+              const clave = `${v.origen} → ${v.destino}`;
+              if (!grupos.has(clave)) grupos.set(clave, []);
+              grupos.get(clave)!.push(v);
+            }
+            return Array.from(grupos.entries()).map(([ruta, lista]) => (
+              <optgroup key={ruta} label={ruta}>
+                {lista.map((v) => {
+                  const horario = new Date(v.horarioSalida);
+                  const dia = new Intl.DateTimeFormat("es-AR", { weekday: "short" }).format(horario);
+                  const fecha = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit" }).format(horario);
+                  const hora = new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit" }).format(horario);
+                  const disp = v.asientos.filter((a) => a.disponible).length;
+                  return (
+                    <option key={v.id} value={v.id}>
+                      {v.viajeRecurrenteId ? "🔁 " : ""}{dia} {fecha} — {hora} ({disp} disp.)
+                    </option>
+                  );
+                })}
+              </optgroup>
+            ));
+          })()}
         </select>
 
         {/* Opción pasajero fijo — solo si el viaje es parte de una plantilla recurrente */}
