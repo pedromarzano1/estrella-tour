@@ -32,7 +32,7 @@ export function AdminViajesClient({ viajes: initial }: Props) {
 
   async function toggleEstado(id: string, estadoActual: string) {
     const nuevoEstado = estadoActual === "ACTIVO" ? "CANCELADO" : "ACTIVO";
-    if (!confirm(`¿Cambiar estado a ${nuevoEstado}?`)) return;
+    if (!confirm(estadoActual === "ACTIVO" ? "¿Cancelar este viaje? Se eliminará de la lista." : "¿Reactivar este viaje?")) return;
     setCambiando(id);
 
     const res = await fetch(`/api/admin/viajes/${id}`, {
@@ -42,7 +42,11 @@ export function AdminViajesClient({ viajes: initial }: Props) {
     });
 
     if (res.ok) {
-      setViajes((prev) => prev.map((v) => (v.id === id ? { ...v, estado: nuevoEstado } : v)));
+      if (nuevoEstado === "CANCELADO") {
+        setViajes((prev) => prev.filter((v) => v.id !== id));
+      } else {
+        setViajes((prev) => prev.map((v) => (v.id === id ? { ...v, estado: nuevoEstado } : v)));
+      }
     }
     setCambiando(null);
   }
