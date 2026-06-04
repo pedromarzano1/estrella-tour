@@ -116,7 +116,7 @@ export default async function HomePage() {
                 color: "bg-brand-50 text-brand-700",
               },
             ].map((f) => (
-              <div key={f.title} className="card hover:shadow-md transition-shadow">
+              <div key={f.title} className="card hover:shadow-md transition-shadow bg-green-50 border border-green-200">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${f.color}`}>
                   <f.icon className="w-6 h-6" />
                 </div>
