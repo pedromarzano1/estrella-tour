@@ -77,10 +77,6 @@ export default async function PasajerosRecurrentePage({ params }: Props) {
             <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{DIAS[recurrente.diaSemana]} — {recurrente.hora} hs</span>
           </div>
         </div>
-        <a href={`/api/admin/viajes-recurrentes/${id}/pasajeros/excel`} className="btn-primary flex items-center gap-2 text-sm">
-          <Download className="w-4 h-4" />
-          Exportar Excel
-        </a>
       </div>
 
       {/* Stats */}
@@ -140,12 +136,21 @@ export default async function PasajerosRecurrentePage({ params }: Props) {
           recurrente.viajes.map((viaje) => (
             <div key={viaje.id} className="card overflow-hidden p-0">
               <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-gray-900 text-sm">{formatearFecha(viaje.horarioSalida)} — {formatearHora(viaje.horarioSalida)}</p>
+                <p className="font-semibold text-gray-900 text-sm">{formatearFecha(viaje.horarioSalida)} — {formatearHora(viaje.horarioSalida)}</p>
+                <div className="flex items-center gap-3">
+                  <span className={`text-xs font-semibold ${viaje.reservas.length === 0 ? "text-gray-400" : "text-brand-700"}`}>
+                    {viaje.reservas.length} pasajero{viaje.reservas.length !== 1 ? "s" : ""}
+                  </span>
+                  {viaje.reservas.length > 0 && (
+                    <a
+                      href={`/api/admin/viajes/${viaje.id}/pasajeros/excel`}
+                      className="flex items-center gap-1 text-xs px-2.5 py-1.5 bg-brand-700 text-white rounded-lg hover:bg-brand-800 transition-colors"
+                    >
+                      <Download className="w-3 h-3" />
+                      Excel
+                    </a>
+                  )}
                 </div>
-                <span className={`text-xs font-semibold ${viaje.reservas.length === 0 ? "text-gray-400" : "text-brand-700"}`}>
-                  {viaje.reservas.length} pasajero{viaje.reservas.length !== 1 ? "s" : ""}
-                </span>
               </div>
 
               {viaje.reservas.length === 0 ? (
