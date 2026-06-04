@@ -2,13 +2,46 @@ import { prisma } from "@/lib/db";
 import { NuevaReservaAdminForm } from "@/components/admin/NuevaReservaAdminForm";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { EstadoAsiento } from "@prisma/client";
 
 interface Props {
   searchParams: Promise<{ userId?: string; nombre?: string }>;
 }
 
+async function sincronizarPasajerosFijos() {
+  const pasajerosFijos = await prisma.pasajeroFijo.findMany({
+    where: { activo: true },
+    include: {
+      viajeRecurrente: {
+        include: {
+          viajes: {
+            where: { horarioSalida: { gte: new Date() }, estado: "ACTIVO" },
+            include: { asientos: { where: { estado: EstadoAsiento.DISPONIBLE }, orderBy: { numero: "asc" } } },
+          },
+        },
+      },
+    },
+  });
+
+  for (const pf of pasajerosFijos) {
+    for (const viaje of pf.viajeRecurrente.viajes) {
+      const yaReservado = await prisma.reserva.findFirst({
+        where: { userId: pf.userId, viajeId: viaje.id, estadoReserva: "CONFIRMADA" },
+      });
+      if (yaReservado || viaje.asientos.length === 0) continue;
+      const asiento = viaje.asientos[0];
+      await prisma.asiento.update({ where: { id: asiento.id }, data: { estado: EstadoAsiento.RESERVADO } });
+      await prisma.reserva.create({
+        data: { userId: pf.userId, viajeId: viaje.id, asientoId: asiento.id, metodoPago: "EFECTIVO", monto: viaje.precio },
+      });
+    }
+  }
+}
+
 export default async function NuevaReservaAdminPage({ searchParams }: Props) {
   const { userId } = await searchParams;
+
+  await sincronizarPasajerosFijos();
 
   const [viajes, usuario] = await Promise.all([
     prisma.viaje.findMany({
