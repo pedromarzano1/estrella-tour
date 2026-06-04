@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { ArrowLeft, MapPin, Clock } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Download } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 interface Props {
@@ -45,6 +45,7 @@ export default async function PasajerosRecurrentePage({ params }: Props) {
         </Link>
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900">Pasajeros Fijos</h1>
+
           <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
             <span className="flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5" />
@@ -56,6 +57,13 @@ export default async function PasajerosRecurrentePage({ params }: Props) {
             </span>
           </div>
         </div>
+        <a
+          href={`/api/admin/viajes-recurrentes/${id}/pasajeros/excel`}
+          className="btn-primary flex items-center gap-2 text-sm"
+        >
+          <Download className="w-4 h-4" />
+          Exportar Excel
+        </a>
       </div>
 
       {/* Stats */}
