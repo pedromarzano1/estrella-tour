@@ -24,7 +24,7 @@ export function AdminViajesRecurrentesClient({ recurrentes: initial }: { recurre
 
   async function toggleActivo(id: string, activo: boolean) {
     const accion = activo ? "desactivar" : "activar";
-    if (!confirm(`¿${accion.charAt(0).toUpperCase() + accion.slice(1)} esta plantilla? ${activo ? "No se generarán más viajes automáticamente." : "Se volverán a generar viajes."}`)) return;
+    if (!confirm(activo ? "¿Desactivar esta plantilla? Se eliminará de la lista." : "¿Reactivar esta plantilla? Se volverán a generar viajes.")) return;
     setCambiando(id);
 
     const res = await fetch("/api/admin/viajes-recurrentes", {
@@ -34,7 +34,11 @@ export function AdminViajesRecurrentesClient({ recurrentes: initial }: { recurre
     });
 
     if (res.ok) {
-      setLista((prev) => prev.map((r) => (r.id === id ? { ...r, activo: !activo } : r)));
+      if (activo) {
+        setLista((prev) => prev.filter((r) => r.id !== id));
+      } else {
+        setLista((prev) => prev.map((r) => (r.id === id ? { ...r, activo: true } : r)));
+      }
     }
     setCambiando(null);
   }
