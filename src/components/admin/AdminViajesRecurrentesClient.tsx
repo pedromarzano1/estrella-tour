@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Repeat, Users, XCircle, CheckCircle } from "lucide-react";
+import Link from "next/link";
+import { Repeat, Users, XCircle, CheckCircle, Edit } from "lucide-react";
 
 interface Recurrente {
   id: string;
@@ -93,14 +94,30 @@ export function AdminViajesRecurrentesClient({ recurrentes: initial }: { recurre
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      onClick={() => toggleActivo(r.id, r.activo)}
-                      disabled={cambiando === r.id}
-                      className="p-1.5 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded"
-                      title={r.activo ? "Desactivar plantilla" : "Reactivar plantilla"}
-                    >
-                      {r.activo ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/admin/viajes-recurrentes/${r.id}/pasajeros`}
+                        className="p-1.5 text-gray-400 hover:text-purple-700 hover:bg-purple-50 rounded"
+                        title="Ver pasajeros"
+                      >
+                        <Users className="w-4 h-4" />
+                      </Link>
+                      <Link
+                        href={`/admin/viajes-recurrentes/${r.id}`}
+                        className="p-1.5 text-gray-400 hover:text-brand-700 hover:bg-brand-50 rounded"
+                        title="Editar"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Link>
+                      <button
+                        onClick={() => toggleActivo(r.id, r.activo)}
+                        disabled={cambiando === r.id}
+                        className="p-1.5 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded"
+                        title={r.activo ? "Desactivar plantilla" : "Reactivar plantilla"}
+                      >
+                        {r.activo ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
