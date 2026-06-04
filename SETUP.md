@@ -33,8 +33,8 @@ npm run db:seed    # Crea el admin inicial y un vehículo de prueba
 ```
 
 **Credenciales del admin inicial:**
-- Email: `admin@estrellatour.com.ar`
-- Contraseña: `Admin1234!`
+- Email: `admin@.com.ar`
+- Contraseña: `Admin`
 - ⚠️ **Cambiá la contraseña apenas ingresés por primera vez**
 
 ## Paso 5: Configurar MercadoPago
