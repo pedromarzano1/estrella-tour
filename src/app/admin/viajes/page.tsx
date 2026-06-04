@@ -12,7 +12,7 @@ export default async function AdminViajesPage() {
 
   const [viajesRaw, recurrentes] = await Promise.all([
     prisma.viaje.findMany({
-      where: { estado: "ACTIVO", horarioSalida: { gte: hoy } },
+      where: { estado: "ACTIVO", horarioSalida: { gte: hoy }, viajeRecurrenteId: null },
       include: {
         vehiculo: { select: { descripcion: true, capacidad: true } },
         _count: { select: { asientos: { where: { estado: "DISPONIBLE" } } } },
