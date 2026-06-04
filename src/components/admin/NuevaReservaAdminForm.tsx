@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Loader2, CheckCircle, AlertCircle, Repeat } from "lucide-react";
+import { Search, Loader2, CheckCircle, AlertCircle, Repeat, ChevronDown, X } from "lucide-react";
 
 interface Asiento {
   id: string;
@@ -44,13 +44,57 @@ export function NuevaReservaAdminForm({ viajes, usuarioPreseleccionado }: Props)
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [busquedaViaje, setBusquedaViaje] = useState("");
+  const [viajeDropdownAbierto, setViajeDropdownAbierto] = useState(false);
+  const viajeRef = useRef<HTMLDivElement>(null);
+
   const viajeSeleccionado = viajes.find((v) => v.id === viajeId);
   const esRecurrente = !!viajeSeleccionado?.viajeRecurrenteId;
+
+  // Cerrar dropdown al hacer click afuera
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (viajeRef.current && !viajeRef.current.contains(e.target as Node)) {
+        setViajeDropdownAbierto(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Resetear esFijo si el viaje no es recurrente
   useEffect(() => {
     if (!esRecurrente) setEsFijo(false);
   }, [esRecurrente]);
+
+  function formatearOpcionViaje(v: Viaje) {
+    const horario = new Date(v.horarioSalida);
+    const dia = new Intl.DateTimeFormat("es-AR", { weekday: "short" }).format(horario);
+    const fecha = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit" }).format(horario);
+    const hora = new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit" }).format(horario);
+    return { dia, fecha, hora, disp: v.asientos.filter((a) => a.disponible).length };
+  }
+
+  const viajesFiltrados = viajes.filter((v) => {
+    const q = busquedaViaje.toLowerCase();
+    if (!q) return true;
+    const { dia, fecha, hora } = formatearOpcionViaje(v);
+    return (
+      v.origen.toLowerCase().includes(q) ||
+      v.destino.toLowerCase().includes(q) ||
+      fecha.includes(q) ||
+      dia.toLowerCase().includes(q) ||
+      hora.includes(q)
+    );
+  });
+
+  // Agrupar viajes filtrados por ruta
+  const gruposViajes = new Map<string, Viaje[]>();
+  for (const v of viajesFiltrados) {
+    const clave = `${v.origen} → ${v.destino}`;
+    if (!gruposViajes.has(clave)) gruposViajes.set(clave, []);
+    gruposViajes.get(clave)!.push(v);
+  }
 
   useEffect(() => {
     if (busquedaUsuario.length < 2) { setResultados([]); return; }
@@ -144,38 +188,70 @@ export function NuevaReservaAdminForm({ viajes, usuarioPreseleccionado }: Props)
       {/* 2. Viaje */}
       <div className="card">
         <h2 className="font-bold text-lg text-brand-900 mb-4">2. Viaje</h2>
-        <select
-          className="input"
-          value={viajeId}
-          onChange={(e) => { setViajeId(e.target.value); setAsientoId(""); }}
-          required
-        >
-          <option value="">Seleccioná un viaje...</option>
-          {(() => {
-            const grupos = new Map<string, Viaje[]>();
-            for (const v of viajes) {
-              const clave = `${v.origen} → ${v.destino}`;
-              if (!grupos.has(clave)) grupos.set(clave, []);
-              grupos.get(clave)!.push(v);
-            }
-            return Array.from(grupos.entries()).map(([ruta, lista]) => (
-              <optgroup key={ruta} label={ruta}>
-                {lista.map((v) => {
-                  const horario = new Date(v.horarioSalida);
-                  const dia = new Intl.DateTimeFormat("es-AR", { weekday: "short" }).format(horario);
-                  const fecha = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit" }).format(horario);
-                  const hora = new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit" }).format(horario);
-                  const disp = v.asientos.filter((a) => a.disponible).length;
-                  return (
-                    <option key={v.id} value={v.id}>
-                      {v.viajeRecurrenteId ? "🔁 " : ""}{dia} {fecha} — {hora} ({disp} disp.)
-                    </option>
-                  );
-                })}
-              </optgroup>
-            ));
-          })()}
-        </select>
+
+        <div ref={viajeRef} className="relative">
+          {/* Input buscador */}
+          <div
+            className="input flex items-center gap-2 cursor-pointer"
+            onClick={() => setViajeDropdownAbierto(true)}
+          >
+            <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <input
+              className="flex-1 outline-none bg-transparent text-sm placeholder-gray-400"
+              placeholder={viajeSeleccionado ? "" : "Buscar por destino, fecha u hora..."}
+              value={viajeSeleccionado && !viajeDropdownAbierto
+                ? (() => { const { dia, fecha, hora } = formatearOpcionViaje(viajeSeleccionado); return `${viajeSeleccionado.origen} → ${viajeSeleccionado.destino} — ${dia} ${fecha} ${hora}`; })()
+                : busquedaViaje
+              }
+              onChange={(e) => { setBusquedaViaje(e.target.value); setViajeDropdownAbierto(true); }}
+              onFocus={() => setViajeDropdownAbierto(true)}
+              autoComplete="off"
+            />
+            {viajeSeleccionado ? (
+              <button type="button" onClick={(e) => { e.stopPropagation(); setViajeId(""); setAsientoId(""); setBusquedaViaje(""); }}>
+                <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+              </button>
+            ) : (
+              <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            )}
+          </div>
+
+          {/* Dropdown */}
+          {viajeDropdownAbierto && (
+            <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-72 overflow-y-auto">
+              {gruposViajes.size === 0 ? (
+                <p className="px-4 py-3 text-sm text-gray-400">Sin resultados</p>
+              ) : (
+                Array.from(gruposViajes.entries()).map(([ruta, lista]) => (
+                  <div key={ruta}>
+                    <p className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wide bg-gray-50 sticky top-0">
+                      {ruta}
+                    </p>
+                    {lista.map((v) => {
+                      const { dia, fecha, hora, disp } = formatearOpcionViaje(v);
+                      return (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => { setViajeId(v.id); setAsientoId(""); setBusquedaViaje(""); setViajeDropdownAbierto(false); }}
+                          className="w-full px-4 py-2.5 text-left hover:bg-brand-50 flex items-center justify-between gap-2 border-b border-gray-50 last:border-0"
+                        >
+                          <div className="flex items-center gap-2">
+                            {v.viajeRecurrenteId && <Repeat className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />}
+                            <span className="text-sm font-medium text-gray-900">{dia} {fecha} — {hora}</span>
+                          </div>
+                          <span className={`text-xs font-semibold ${disp === 0 ? "text-red-500" : "text-green-600"}`}>
+                            {disp === 0 ? "Agotado" : `${disp} disp.`}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Opción pasajero fijo — solo si el viaje es parte de una plantilla recurrente */}
         {esRecurrente && (
