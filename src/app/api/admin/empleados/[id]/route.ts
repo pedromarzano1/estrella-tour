@@ -12,11 +12,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params;
 
-  // No permitir que un admin se desactive a sí mismo
-  if (id === admin.id) {
-    return NextResponse.json({ error: "No podés desactivar tu propia cuenta" }, { status: 400 });
-  }
-
   const empleado = await prisma.user.findUnique({ where: { id, rol: "ADMIN" } });
   if (!empleado) return NextResponse.json({ error: "Empleado no encontrado" }, { status: 404 });
 
@@ -55,6 +50,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const activationLink = `${process.env.NEXT_PUBLIC_BASE_URL}/olvide-contrasena/nueva?token=${token}`;
     return NextResponse.json({ ok: true, accion: "email_reenviado", emailEnviado, emailError, activationLink });
+  }
+
+  // No permitir que un admin se desactive a sí mismo
+  if (id === admin.id) {
+    return NextResponse.json({ error: "No podés desactivar tu propia cuenta" }, { status: 400 });
   }
 
   // Activar / desactivar
