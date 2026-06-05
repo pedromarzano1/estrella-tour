@@ -27,15 +27,15 @@ export function Footer() {
             <ul className="space-y-3 text-slate-300 text-sm">
               <li className="flex items-center gap-2">
                 <WhatsAppIcon className="w-4 h-4 text-green-400 flex-shrink-0" />
-                <a href="https://wa.me/542324504000" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">2324-504000</a>
+                <a href="/api/wa?to=mercedes1" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">2324-504000</a>
               </li>
               <li className="flex items-center gap-2">
                 <WhatsAppIcon className="w-4 h-4 text-green-400 flex-shrink-0" />
-                <a href="https://wa.me/542324560139" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">2324-560139</a>
+                <a href="/api/wa?to=mercedes2" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">2324-560139</a>
               </li>
               <li className="flex items-center gap-2">
                 <WhatsAppIcon className="w-4 h-4 text-green-400 flex-shrink-0" />
-                <a href="https://wa.me/541122663000" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">11-22663000</a>
+                <a href="/api/wa?to=bsas" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">11-22663000</a>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 flex-shrink-0" />

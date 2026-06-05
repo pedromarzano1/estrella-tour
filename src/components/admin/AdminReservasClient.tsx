@@ -122,6 +122,7 @@ export function AdminReservasClient({ reservas, filtroActivo }: Props) {
               <tr>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Pasajero</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Viaje</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">Fecha</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Asiento</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Método</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Monto</th>
@@ -149,8 +150,13 @@ export function AdminReservasClient({ reservas, filtroActivo }: Props) {
                   </td>
                   <td className="px-4 py-3">
                     <p className="text-gray-700">{r.viaje.origen} → {r.viaje.destino}</p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="font-medium text-gray-800">
+                      {new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit" }).format(new Date(r.viaje.horarioSalida))}
+                    </p>
                     <p className="text-xs text-gray-400">
-                      {new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(r.viaje.horarioSalida))}
+                      {new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit" }).format(new Date(r.viaje.horarioSalida))}
                     </p>
                   </td>
                   <td className="px-4 py-3 font-medium text-gray-700">N° {r.asiento.numero}</td>
@@ -195,7 +201,7 @@ export function AdminReservasClient({ reservas, filtroActivo }: Props) {
               ))}
               {filtradas.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="text-center py-10 text-gray-400">Sin resultados</td>
+                  <td colSpan={8} className="text-center py-10 text-gray-400">Sin resultados</td>
                 </tr>
               )}
             </tbody>

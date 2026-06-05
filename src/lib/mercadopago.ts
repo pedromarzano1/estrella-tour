@@ -1,4 +1,5 @@
 import { MercadoPagoConfig, Preference, Payment } from "mercadopago";
+import crypto from "crypto";
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN!,
@@ -72,8 +73,14 @@ export function verificarFirmaWebhook(
   }
 
   const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
-  const crypto = require("crypto");
   const hmac = crypto.createHmac("sha256", secret).update(manifest).digest("hex");
 
-  return hmac === v1;
+  // timingSafeEqual previene timing oracle attacks (medir microsegundos para deducir el secret)
+  try {
+    const a = Buffer.from(hmac, "hex");
+    const b = Buffer.from(v1, "hex");
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
 }

@@ -5,17 +5,15 @@ import { X } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 const WA_CONTACTS = [
-  { numero: "542324504000", label: "2324-504000", descripcion: "Central Mercedes" },
-  { numero: "542324560139", label: "2324-560139", descripcion: "Alternativo Mercedes" },
-  { numero: "541122663000", label: "11-22663000", descripcion: "Buenos Aires" },
+  { key: "mercedes1", label: "2324-504000", descripcion: "Central Mercedes" },
+  { key: "mercedes2", label: "2324-560139", descripcion: "Alternativo Mercedes" },
+  { key: "bsas", label: "11-22663000", descripcion: "Buenos Aires" },
 ];
 
 export function WhatsAppFloat() {
   const [open, setOpen] = useState(false);
 
-  const mensaje = encodeURIComponent(
-    "Hola Estrella Tour 👋 Quisiera consultar sobre los viajes disponibles."
-  );
+  const mensaje = "Hola Estrella Tour! Quisiera consultar sobre los viajes disponibles.";
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
@@ -34,8 +32,8 @@ export function WhatsAppFloat() {
             <p className="text-xs text-gray-500">Elegí el número según tu zona:</p>
             {WA_CONTACTS.map((c) => (
               <a
-                key={c.numero}
-                href={`https://wa.me/${c.numero}?text=${mensaje}`}
+                key={c.key}
+                href={`/api/wa?to=${c.key}&msg=${encodeURIComponent(mensaje)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-3 p-3 rounded-xl bg-green-50 hover:bg-green-100 transition-colors group"
@@ -45,7 +43,7 @@ export function WhatsAppFloat() {
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-gray-900 group-hover:text-green-700">{c.label}</p>
-                  <p className="text-xs text-gray-500">{c.descripcion}</p>
+                <p className="text-xs text-gray-500">{c.descripcion}</p>
                 </div>
               </a>
             ))}
