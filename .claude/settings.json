@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git pull *)",
+      "Bash(mkdir -p \"c:\\\\Users\\\\RYZEN\\\\OneDrive\\\\Escritorio\\\\estrella-tour-main\\\\src\\\\app\\\\admin\\\\viajes-recurrentes\\\\[id]\\\\pasajeros\")",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\RYZEN\\OneDrive\\Escritorio\\estrella-tour-main\\src\\app\\admin\\viajes-recurrentes\\[id]"
+    ]
+  }
+}
