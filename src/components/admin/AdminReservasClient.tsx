@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, X } from "lucide-react";
+import { Search, CheckCircle } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 interface Reserva {
@@ -42,6 +42,7 @@ export function AdminReservasClient({ reservas, filtroActivo }: Props) {
   const router = useRouter();
   const [busqueda, setBusqueda] = useState("");
   const [cancelando, setCancelando] = useState<string | null>(null);
+  const [marcando, setMarcando] = useState<string | null>(null);
   const [lista, setLista] = useState(reservas);
 
   const filtradas = lista.filter((r) => {
@@ -55,6 +56,15 @@ export function AdminReservasClient({ reservas, filtroActivo }: Props) {
       r.id.includes(q)
     );
   });
+
+  async function marcarPagado(id: string) {
+    setMarcando(id);
+    const res = await fetch(`/api/admin/reservas/${id}/marcar-pagado`, { method: "POST" });
+    if (res.ok) {
+      setLista((prev) => prev.map((r) => r.id === id ? { ...r, estadoPago: "APROBADO" } : r));
+    }
+    setMarcando(null);
+  }
 
   async function cancelarReserva(id: string) {
     if (!confirm("¿Cancelar esta reserva? (Admin puede cancelar sin restricción de 24h)")) return;
@@ -159,15 +169,27 @@ export function AdminReservasClient({ reservas, filtroActivo }: Props) {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    {r.estadoReserva === "CONFIRMADA" && (
-                      <button
-                        onClick={() => cancelarReserva(r.id)}
-                        disabled={cancelando === r.id}
-                        className="text-xs text-red-600 hover:text-red-800 hover:underline font-medium"
-                      >
-                        {cancelando === r.id ? "Cancelando..." : "Cancelar"}
-                      </button>
-                    )}
+                    <div className="flex flex-col gap-1.5">
+                      {r.estadoPago === "PENDIENTE" && r.metodoPago === "EFECTIVO" && (
+                        <button
+                          onClick={() => marcarPagado(r.id)}
+                          disabled={marcando === r.id}
+                          className="flex items-center gap-1 text-xs bg-green-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                        >
+                          <CheckCircle className="w-3 h-3" />
+                          {marcando === r.id ? "Guardando..." : "Marcar pagado"}
+                        </button>
+                      )}
+                      {r.estadoReserva === "CONFIRMADA" && (
+                        <button
+                          onClick={() => cancelarReserva(r.id)}
+                          disabled={cancelando === r.id}
+                          className="text-xs text-red-600 hover:text-red-800 hover:underline font-medium"
+                        >
+                          {cancelando === r.id ? "Cancelando..." : "Cancelar"}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
