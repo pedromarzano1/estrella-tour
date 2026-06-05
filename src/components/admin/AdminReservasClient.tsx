@@ -155,7 +155,7 @@ export function AdminReservasClient({ reservas, filtroActivo }: Props) {
                     <p className="font-medium text-gray-800">
                       {new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit" }).format(new Date(r.viaje.horarioSalida))}
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs font-medium text-gray-700">
                       {new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit" }).format(new Date(r.viaje.horarioSalida))}
                     </p>
                   </td>
