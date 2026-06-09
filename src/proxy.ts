@@ -53,13 +53,7 @@ export async function proxy(req: NextRequest) {
     return response;
   }
 
-  // Verificar sesión en DB — en middleware solo chequeamos el rol del token via API interna
-  // La verificación completa ocurre en cada Server Component
-  if (isAuthRoute) {
-    return NextResponse.redirect(new URL("/", req.url));
-  }
-
-  // Para rutas de admin verificamos el rol via header (se setea en login)
+  // Para rutas de admin verificamos el rol via cookie (se setea en login)
   const userRol = req.cookies.get("et_rol")?.value;
   if (isAdminRoute && userRol !== "ADMIN") {
     return NextResponse.redirect(new URL("/", req.url));
