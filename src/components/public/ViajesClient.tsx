@@ -49,11 +49,32 @@ export function ViajesClient({ viajes, isLoggedIn }: Props) {
   }, [viajes]);
 
   const [diaSeleccionado, setDiaSeleccionado] = useState<string>(dias[0] ?? "");
+  const [rutaSeleccionada, setRutaSeleccionada] = useState<string>("todas");
 
   const viajesDelDia = useMemo(
     () => viajes.filter((v) => clavesDia(v.horarioSalida) === diaSeleccionado),
     [viajes, diaSeleccionado]
   );
+
+  // Rutas únicas disponibles para el día seleccionado
+  const rutasDelDia = useMemo(() => {
+    const keys = Array.from(new Set(viajesDelDia.map((v) => `${v.origen}|||${v.destino}`)));
+    return keys.map((k) => {
+      const [origen, destino] = k.split("|||");
+      return { key: k, origen, destino };
+    });
+  }, [viajesDelDia]);
+
+  // Reset filtro de ruta cuando cambia el día
+  function seleccionarDia(dia: string) {
+    setDiaSeleccionado(dia);
+    setRutaSeleccionada("todas");
+  }
+
+  const viajesFiltrados = useMemo(() => {
+    if (rutaSeleccionada === "todas") return viajesDelDia;
+    return viajesDelDia.filter((v) => `${v.origen}|||${v.destino}` === rutaSeleccionada);
+  }, [viajesDelDia, rutaSeleccionada]);
 
   if (viajes.length === 0) {
     return (
@@ -85,7 +106,7 @@ export function ViajesClient({ viajes, isLoggedIn }: Props) {
           return (
             <button
               key={dia}
-              onClick={() => setDiaSeleccionado(dia)}
+              onClick={() => seleccionarDia(dia)}
               className={`flex-shrink-0 flex flex-col items-center px-4 py-3 rounded-xl border-2 transition-all min-w-[80px] ${
                 activo
                   ? "border-brand-700 bg-brand-700 text-white shadow-md"
@@ -105,14 +126,44 @@ export function ViajesClient({ viajes, isLoggedIn }: Props) {
         })}
       </div>
 
-      {/* Título del día seleccionado */}
+      {/* Filtro de rutas */}
+      {rutasDelDia.length > 1 && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          <button
+            onClick={() => setRutaSeleccionada("todas")}
+            className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+              rutaSeleccionada === "todas"
+                ? "bg-brand-700 text-white border-brand-700"
+                : "bg-white text-gray-600 border-gray-200 hover:border-brand-300"
+            }`}
+          >
+            Todas las rutas
+          </button>
+          {rutasDelDia.map((r) => (
+            <button
+              key={r.key}
+              onClick={() => setRutaSeleccionada(r.key)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                rutaSeleccionada === r.key
+                  ? "bg-brand-700 text-white border-brand-700"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-brand-300"
+              }`}
+            >
+              <MapPin className="w-3 h-3" />
+              {r.origen} → {r.destino}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Título */}
       <p className="text-sm font-medium text-gray-500 mb-4 capitalize">
-        {formatFechaDia(diaSeleccionado + "T12:00:00")} — {viajesDelDia.length} viaje{viajesDelDia.length !== 1 ? "s" : ""}
+        {formatFechaDia(diaSeleccionado + "T12:00:00")} — {viajesFiltrados.length} viaje{viajesFiltrados.length !== 1 ? "s" : ""}
       </p>
 
       {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {viajesDelDia.map((viaje) => {
+        {viajesFiltrados.map((viaje) => {
           const asientosDisponibles = viaje.asientosDisponibles;
           const agotado = asientosDisponibles === 0;
           const pocosAsientos = asientosDisponibles <= 5 && asientosDisponibles > 0;
