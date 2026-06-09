@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Repeat, Users, XCircle, CheckCircle, Edit } from "lucide-react";
+import { Repeat, Users, XCircle, CheckCircle, Edit, Trash2 } from "lucide-react";
 
 interface Recurrente {
   id: string;
@@ -22,6 +22,19 @@ const DIAS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 export function AdminViajesRecurrentesClient({ recurrentes: initial }: { recurrentes: Recurrente[] }) {
   const [lista, setLista] = useState(initial);
   const [cambiando, setCambiando] = useState<string | null>(null);
+  const [cancelando, setCancelando] = useState<string | null>(null);
+
+  async function cancelarViajesFuturos(id: string, origen: string, destino: string) {
+    if (!confirm(`¿Cancelar TODOS los viajes futuros de ${origen} → ${destino}? Esta acción no se puede deshacer.`)) return;
+    setCancelando(id);
+    const res = await fetch(`/api/admin/viajes-recurrentes/${id}/cancelar-viajes`, { method: "POST" });
+    if (res.ok) {
+      const data = await res.json();
+      alert(`Se cancelaron ${data.cancelados} viaje${data.cancelados !== 1 ? "s" : ""} futuros.`);
+      setLista((prev) => prev.map((r) => r.id === id ? { ...r, _count: { ...r._count, viajes: 0 } } : r));
+    }
+    setCancelando(null);
+  }
 
   async function toggleActivo(id: string, activo: boolean) {
     const accion = activo ? "desactivar" : "activar";
@@ -119,6 +132,14 @@ export function AdminViajesRecurrentesClient({ recurrentes: initial }: { recurre
                       >
                         <Edit className="w-4 h-4" />
                       </Link>
+                      <button
+                        onClick={() => cancelarViajesFuturos(r.id, r.origen, r.destino)}
+                        disabled={cancelando === r.id || r._count.viajes === 0}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded disabled:opacity-30"
+                        title="Cancelar todos los viajes futuros"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => toggleActivo(r.id, r.activo)}
                         disabled={cambiando === r.id}
