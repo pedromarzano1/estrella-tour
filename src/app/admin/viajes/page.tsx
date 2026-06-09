@@ -20,7 +20,16 @@ export default async function AdminViajesPage() {
       orderBy: { horarioSalida: "asc" },
     }),
     prisma.viajeRecurrente.findMany({
-      where: { activo: true },
+      where: {
+        OR: [
+          { activo: true },
+          // Inactivas pero con viajes futuros aún activos (pendientes de cancelar)
+          {
+            activo: false,
+            viajes: { some: { estado: "ACTIVO", horarioSalida: { gte: new Date() } } },
+          },
+        ],
+      },
       include: {
         vehiculo: { select: { descripcion: true, capacidad: true } },
         viajes: {
@@ -31,12 +40,12 @@ export default async function AdminViajesPage() {
         },
         _count: {
           select: {
-            viajes: { where: { horarioSalida: { gte: new Date() } } },
+            viajes: { where: { horarioSalida: { gte: new Date() }, estado: "ACTIVO" } },
             pasajerosFijos: { where: { activo: true } },
           },
         },
       },
-      orderBy: [{ diaSemana: "asc" }, { hora: "asc" }],
+      orderBy: [{ activo: "desc" }, { diaSemana: "asc" }, { hora: "asc" }],
     }),
   ]);
 

@@ -37,7 +37,6 @@ export function AdminViajesRecurrentesClient({ recurrentes: initial }: { recurre
   }
 
   async function toggleActivo(id: string, activo: boolean) {
-    const accion = activo ? "desactivar" : "activar";
     if (!confirm(activo ? "¿Desactivar esta plantilla? Se eliminará de la lista." : "¿Reactivar esta plantilla? Se volverán a generar viajes.")) return;
     setCambiando(id);
 
@@ -112,9 +111,12 @@ export function AdminViajesRecurrentesClient({ recurrentes: initial }: { recurre
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={r.activo ? "badge-success" : "badge-gray"}>
+                    <span className={r.activo ? "badge-success" : "badge-danger"}>
                       {r.activo ? "Activa" : "Inactiva"}
                     </span>
+                    {!r.activo && r._count.viajes > 0 && (
+                      <p className="text-xs text-red-500 mt-1 font-medium">⚠ {r._count.viajes} viajes activos</p>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
