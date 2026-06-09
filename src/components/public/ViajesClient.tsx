@@ -43,38 +43,47 @@ function clavesDia(iso: string) {
 }
 
 export function ViajesClient({ viajes, isLoggedIn }: Props) {
-  const dias = useMemo(() => {
-    const keys = Array.from(new Set(viajes.map((v) => clavesDia(v.horarioSalida))));
-    return keys.sort();
-  }, [viajes]);
-
-  const [diaSeleccionado, setDiaSeleccionado] = useState<string>(dias[0] ?? "");
-  const [rutaSeleccionada, setRutaSeleccionada] = useState<string>("todas");
-
-  const viajesDelDia = useMemo(
-    () => viajes.filter((v) => clavesDia(v.horarioSalida) === diaSeleccionado),
-    [viajes, diaSeleccionado]
-  );
-
-  // Rutas únicas disponibles para el día seleccionado
-  const rutasDelDia = useMemo(() => {
-    const keys = Array.from(new Set(viajesDelDia.map((v) => `${v.origen}|||${v.destino}`)));
+  // Rutas únicas globales (de todos los viajes)
+  const rutasGlobales = useMemo(() => {
+    const keys = Array.from(new Set(viajes.map((v) => `${v.origen}|||${v.destino}`)));
     return keys.map((k) => {
       const [origen, destino] = k.split("|||");
       return { key: k, origen, destino };
     });
-  }, [viajesDelDia]);
+  }, [viajes]);
 
-  // Reset filtro de ruta cuando cambia el día
-  function seleccionarDia(dia: string) {
-    setDiaSeleccionado(dia);
-    setRutaSeleccionada("todas");
+  const [rutaSeleccionada, setRutaSeleccionada] = useState<string>("todas");
+
+  // Viajes filtrados por ruta
+  const viajesPorRuta = useMemo(() => {
+    if (rutaSeleccionada === "todas") return viajes;
+    return viajes.filter((v) => `${v.origen}|||${v.destino}` === rutaSeleccionada);
+  }, [viajes, rutaSeleccionada]);
+
+  // Días disponibles para la ruta seleccionada
+  const dias = useMemo(() => {
+    const keys = Array.from(new Set(viajesPorRuta.map((v) => clavesDia(v.horarioSalida))));
+    return keys.sort();
+  }, [viajesPorRuta]);
+
+  const [diaSeleccionado, setDiaSeleccionado] = useState<string>(dias[0] ?? "");
+
+  // Cuando cambia la ruta, resetear al primer día disponible
+  function seleccionarRuta(ruta: string) {
+    setRutaSeleccionada(ruta);
+    const diasNuevos = Array.from(
+      new Set(
+        (ruta === "todas" ? viajes : viajes.filter((v) => `${v.origen}|||${v.destino}` === ruta))
+          .map((v) => clavesDia(v.horarioSalida))
+      )
+    ).sort();
+    setDiaSeleccionado(diasNuevos[0] ?? "");
   }
 
-  const viajesFiltrados = useMemo(() => {
-    if (rutaSeleccionada === "todas") return viajesDelDia;
-    return viajesDelDia.filter((v) => `${v.origen}|||${v.destino}` === rutaSeleccionada);
-  }, [viajesDelDia, rutaSeleccionada]);
+  const viajesFiltrados = useMemo(
+    () => viajesPorRuta.filter((v) => clavesDia(v.horarioSalida) === diaSeleccionado),
+    [viajesPorRuta, diaSeleccionado]
+  );
 
   if (viajes.length === 0) {
     return (
@@ -88,6 +97,36 @@ export function ViajesClient({ viajes, isLoggedIn }: Props) {
 
   return (
     <div>
+      {/* Filtro de rutas — siempre visible si hay más de una ruta */}
+      {rutasGlobales.length > 1 && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          <button
+            onClick={() => seleccionarRuta("todas")}
+            className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+              rutaSeleccionada === "todas"
+                ? "bg-brand-700 text-white border-brand-700"
+                : "bg-white text-gray-600 border-gray-200 hover:border-brand-300"
+            }`}
+          >
+            Todas las rutas
+          </button>
+          {rutasGlobales.map((r) => (
+            <button
+              key={r.key}
+              onClick={() => seleccionarRuta(r.key)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                rutaSeleccionada === r.key
+                  ? "bg-brand-700 text-white border-brand-700"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-brand-300"
+              }`}
+            >
+              <MapPin className="w-3 h-3" />
+              {r.origen} → {r.destino}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Selector de días */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-8 scrollbar-hide">
         {dias.map((dia) => {
@@ -106,7 +145,7 @@ export function ViajesClient({ viajes, isLoggedIn }: Props) {
           return (
             <button
               key={dia}
-              onClick={() => seleccionarDia(dia)}
+              onClick={() => setDiaSeleccionado(dia)}
               className={`flex-shrink-0 flex flex-col items-center px-4 py-3 rounded-xl border-2 transition-all min-w-[80px] ${
                 activo
                   ? "border-brand-700 bg-brand-700 text-white shadow-md"
@@ -125,36 +164,6 @@ export function ViajesClient({ viajes, isLoggedIn }: Props) {
           );
         })}
       </div>
-
-      {/* Filtro de rutas */}
-      {rutasDelDia.length > 1 && (
-        <div className="flex flex-wrap gap-2 mb-6">
-          <button
-            onClick={() => setRutaSeleccionada("todas")}
-            className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-              rutaSeleccionada === "todas"
-                ? "bg-brand-700 text-white border-brand-700"
-                : "bg-white text-gray-600 border-gray-200 hover:border-brand-300"
-            }`}
-          >
-            Todas las rutas
-          </button>
-          {rutasDelDia.map((r) => (
-            <button
-              key={r.key}
-              onClick={() => setRutaSeleccionada(r.key)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                rutaSeleccionada === r.key
-                  ? "bg-brand-700 text-white border-brand-700"
-                  : "bg-white text-gray-600 border-gray-200 hover:border-brand-300"
-              }`}
-            >
-              <MapPin className="w-3 h-3" />
-              {r.origen} → {r.destino}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Título */}
       <p className="text-sm font-medium text-gray-500 mb-4 capitalize">
