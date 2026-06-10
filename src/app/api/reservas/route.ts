@@ -6,6 +6,7 @@ import { crearPreferencia } from "@/lib/mercadopago";
 import { enviarConfirmacionReserva } from "@/lib/email";
 import { EstadoAsiento } from "@prisma/client";
 import { rateLimit, getRateLimitKey } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
   const user = await getSessionFromRequest(req);
@@ -13,6 +14,7 @@ export async function POST(req: NextRequest) {
 
   // Rate limit: máximo 10 reservas por hora por usuario
   if (!await rateLimit(getRateLimitKey(user.id, "reserva"), 10, 3_600_000)) {
+    logger.warn("reserva.ratelimit", { userId: user.id });
     return NextResponse.json({ error: "Demasiadas reservas en poco tiempo. Intentá más tarde." }, { status: 429 });
   }
 
@@ -126,6 +128,7 @@ export async function POST(req: NextRequest) {
           data: { mpPreferenceId: pref.id },
         });
 
+        logger.info("reserva.created", { reservaId: reserva.id, userId: user.id, viajeId, metodo: "MERCADO_PAGO" });
         return NextResponse.json({ reservaId: reserva.id, checkoutUrl: pref.init_point });
       } catch (mpErr) {
         // Si MP falla, cancelar la reserva y liberar el asiento
@@ -133,13 +136,15 @@ export async function POST(req: NextRequest) {
           prisma.reserva.update({ where: { id: reserva.id }, data: { estadoReserva: "CANCELADA", canceladaEn: new Date() } }),
           prisma.asiento.update({ where: { id: asientoId }, data: { estado: EstadoAsiento.DISPONIBLE } }),
         ]);
-        console.error("MercadoPago error:", mpErr);
+        logger.error("reserva.mp_error", { reservaId: reserva.id, userId: user.id, error: mpErr instanceof Error ? mpErr.message : String(mpErr) });
         return NextResponse.json(
           { error: "Error al conectar con Mercado Pago. Intentá de nuevo o elegí pago en efectivo." },
           { status: 502 }
         );
       }
     }
+
+    logger.info("reserva.created", { reservaId: reserva.id, userId: user.id, viajeId, metodo: "EFECTIVO" });
 
     // Si es efectivo, enviar email de confirmación (sin bloquear si falla)
     await enviarConfirmacionReserva({

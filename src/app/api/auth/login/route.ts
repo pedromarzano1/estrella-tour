@@ -7,11 +7,13 @@ import {
 } from "@/lib/auth";
 import { loginSchema } from "@/lib/validations";
 import { rateLimit, getRateLimitKey } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
   const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim();
 
   if (!await rateLimit(getRateLimitKey(ip, "login"), 5, 60_000)) {
+    logger.warn("auth.ratelimit", { ip });
     return NextResponse.json(
       { error: "Demasiados intentos. Esperá un minuto." },
       { status: 429 }
@@ -30,14 +32,17 @@ export async function POST(req: NextRequest) {
   if (!user || !user.activo) {
     // Tiempo constante para evitar timing attacks
     await verifyPassword(password, "$2a$12$dummy.hash.to.prevent.timing.attacks.ok");
+    logger.warn("auth.login.failed", { email: email.toLowerCase(), ip, reason: !user ? "not_found" : "inactive" });
     return NextResponse.json({ error: "Email o contraseña incorrectos" }, { status: 401 });
   }
 
   const valid = await verifyPassword(password, user.passwordHash);
   if (!valid) {
+    logger.warn("auth.login.failed", { email: email.toLowerCase(), ip, reason: "wrong_password" });
     return NextResponse.json({ error: "Email o contraseña incorrectos" }, { status: 401 });
   }
 
+  logger.info("auth.login.ok", { userId: user.id, email: user.email, ip });
   const token = await createSession(user.id);
   const cookieOpts = getSessionCookieOptions(token);
 

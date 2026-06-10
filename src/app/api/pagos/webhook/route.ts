@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { obtenerPago, verificarFirmaWebhook } from "@/lib/mercadopago";
 import { enviarConfirmacionReserva, enviarNotificacionAdminPagoRecibido } from "@/lib/email";
 import { EstadoAsiento } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
   const xSignature = req.headers.get("x-signature");
@@ -18,6 +19,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Webhook no configurado" }, { status: 503 });
   }
   if (!verificarFirmaWebhook(xSignature, xRequestId, dataId, secret)) {
+    logger.warn("webhook.invalid_signature", { dataId, xRequestId });
     return NextResponse.json({ error: "Firma inválida" }, { status: 401 });
   }
 
@@ -78,6 +80,7 @@ export async function POST(req: NextRequest) {
           where: { id: reserva.asientoId },
           data: { estado: EstadoAsiento.PAGADO },
         });
+        logger.info("payment.approved", { reservaId, paymentId, monto: mpPago.transaction_amount });
       } else if (estadoMp === "rejected") {
         await tx.reserva.update({
           where: { id: reservaId },
@@ -87,6 +90,7 @@ export async function POST(req: NextRequest) {
           where: { id: reserva.asientoId },
           data: { estado: EstadoAsiento.DISPONIBLE },
         });
+        logger.warn("payment.rejected", { reservaId, paymentId });
       } else if (estadoMp === "in_process" || estadoMp === "pending") {
         await tx.reserva.update({
           where: { id: reservaId },
@@ -123,7 +127,7 @@ export async function POST(req: NextRequest) {
       await prisma.reserva.update({ where: { id: reservaId }, data: { emailEnviado: true } }).catch(() => {});
     }
   } catch (err) {
-    console.error("Webhook error:", err);
+    logger.error("webhook.error", { paymentId, error: err instanceof Error ? err.message : String(err) });
     await prisma.webhookLog.updateMany({
       where: { payload: { path: ["data", "id"], equals: paymentId } },
       data: { error: String(err) },
