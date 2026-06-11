@@ -43,18 +43,33 @@ function clavesDia(iso: string) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export function ViajesClient({ viajes, isLoggedIn }: Props) {
-  // Clave normalizada para comparar rutas sin importar capitalización ni espacios
-  function claveRuta(origen: string, destino: string) {
-    return `${origen.trim().toLowerCase()}|||${destino.trim().toLowerCase()}`;
-  }
+// Aliases → nombre canónico
+const CIUDADES: Record<string, string> = {
+  "bs as": "Buenos Aires",
+  "bs. as.": "Buenos Aires",
+  "bs.as.": "Buenos Aires",
+  "bsas": "Buenos Aires",
+  "buenos aires": "Buenos Aires",
+  "mercedes": "Mercedes",
+};
 
-  // Rutas únicas globales (de todos los viajes), deduplicadas por clave normalizada
+function normalizarCiudad(nombre: string): string {
+  const key = nombre.trim().toLowerCase().replace(/\s+/g, " ");
+  return CIUDADES[key] ?? nombre.trim().replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function claveRuta(origen: string, destino: string) {
+  return `${normalizarCiudad(origen).toLowerCase()}|||${normalizarCiudad(destino).toLowerCase()}`;
+}
+
+export function ViajesClient({ viajes, isLoggedIn }: Props) {
+
+  // Rutas únicas globales (de todos los viajes), deduplicadas y con nombre canónico
   const rutasGlobales = useMemo(() => {
     const seen = new Map<string, { key: string; origen: string; destino: string }>();
     for (const v of viajes) {
       const k = claveRuta(v.origen, v.destino);
-      if (!seen.has(k)) seen.set(k, { key: k, origen: v.origen.trim(), destino: v.destino.trim() });
+      if (!seen.has(k)) seen.set(k, { key: k, origen: normalizarCiudad(v.origen), destino: normalizarCiudad(v.destino) });
     }
     return Array.from(seen.values());
   }, [viajes]);
