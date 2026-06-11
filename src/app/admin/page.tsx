@@ -128,7 +128,7 @@ export default async function AdminDashboard() {
                   <td className="py-3 pr-4">
                     <p className="text-gray-700">{r.viaje.origen} → {r.viaje.destino}</p>
                     <p className="text-xs text-gray-400">
-                      {new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(r.viaje.horarioSalida)}
+                      {new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).format(r.viaje.horarioSalida)}
                     </p>
                   </td>
                   <td className="py-3 pr-4 font-medium text-gray-700">N° {r.asiento.numero}</td>

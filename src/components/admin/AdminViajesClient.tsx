@@ -84,7 +84,7 @@ export function AdminViajesClient({ viajes: initial }: Props) {
                   </td>
                   <td className="px-4 py-3 text-gray-600">
                     <p>{new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit" }).format(horario)}</p>
-                    <p className="font-semibold">{new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit" }).format(horario)}</p>
+                    <p className="font-semibold">{new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false }).format(horario)}</p>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 text-gray-600">

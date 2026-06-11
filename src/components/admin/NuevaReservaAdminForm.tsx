@@ -71,7 +71,7 @@ export function NuevaReservaAdminForm({ viajes, usuarioPreseleccionado }: Props)
     const horario = new Date(v.horarioSalida);
     const dia = new Intl.DateTimeFormat("es-AR", { weekday: "short" }).format(horario);
     const fecha = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit" }).format(horario);
-    const hora = new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit" }).format(horario);
+    const hora = new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false }).format(horario);
     return { dia, fecha, hora, disp: v.asientos.filter((a) => a.disponible).length };
   }
 
