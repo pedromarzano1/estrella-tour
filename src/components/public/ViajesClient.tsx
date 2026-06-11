@@ -44,13 +44,19 @@ function clavesDia(iso: string) {
 }
 
 export function ViajesClient({ viajes, isLoggedIn }: Props) {
-  // Rutas únicas globales (de todos los viajes)
+  // Clave normalizada para comparar rutas sin importar capitalización ni espacios
+  function claveRuta(origen: string, destino: string) {
+    return `${origen.trim().toLowerCase()}|||${destino.trim().toLowerCase()}`;
+  }
+
+  // Rutas únicas globales (de todos los viajes), deduplicadas por clave normalizada
   const rutasGlobales = useMemo(() => {
-    const keys = Array.from(new Set(viajes.map((v) => `${v.origen}|||${v.destino}`)));
-    return keys.map((k) => {
-      const [origen, destino] = k.split("|||");
-      return { key: k, origen, destino };
-    });
+    const seen = new Map<string, { key: string; origen: string; destino: string }>();
+    for (const v of viajes) {
+      const k = claveRuta(v.origen, v.destino);
+      if (!seen.has(k)) seen.set(k, { key: k, origen: v.origen.trim(), destino: v.destino.trim() });
+    }
+    return Array.from(seen.values());
   }, [viajes]);
 
   const [rutaSeleccionada, setRutaSeleccionada] = useState<string>("todas");
@@ -58,7 +64,7 @@ export function ViajesClient({ viajes, isLoggedIn }: Props) {
   // Viajes filtrados por ruta
   const viajesPorRuta = useMemo(() => {
     if (rutaSeleccionada === "todas") return viajes;
-    return viajes.filter((v) => `${v.origen}|||${v.destino}` === rutaSeleccionada);
+    return viajes.filter((v) => claveRuta(v.origen, v.destino) === rutaSeleccionada);
   }, [viajes, rutaSeleccionada]);
 
   // Días disponibles para la ruta seleccionada
@@ -74,7 +80,7 @@ export function ViajesClient({ viajes, isLoggedIn }: Props) {
     setRutaSeleccionada(ruta);
     const diasNuevos = Array.from(
       new Set(
-        (ruta === "todas" ? viajes : viajes.filter((v) => `${v.origen}|||${v.destino}` === ruta))
+        (ruta === "todas" ? viajes : viajes.filter((v) => claveRuta(v.origen, v.destino) === ruta))
           .map((v) => clavesDia(v.horarioSalida))
       )
     ).sort();
