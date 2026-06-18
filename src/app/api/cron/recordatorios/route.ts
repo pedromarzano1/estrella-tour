@@ -112,28 +112,22 @@ export async function GET(req: NextRequest) {
   const en10h = new Date(ahora.getTime() + 10 * 60 * 60 * 1000);
   const en14h = new Date(ahora.getTime() + 14 * 60 * 60 * 1000);
 
+  const whereBase = {
+    estadoReserva: "CONFIRMADA" as const,
+    estadoPago: "PENDIENTE" as const,
+    viaje: { estado: "ACTIVO" as const },
+  };
+
   const [pendientes24h, pendientes12h] = await Promise.all([
     prisma.reserva.findMany({
-      where: {
-        estadoReserva: "CONFIRMADA",
-        estadoPago: "PENDIENTE",
-        metodoPago: "MERCADO_PAGO",
-        pagoRecordatorio24h: false,
-        viaje: { horarioSalida: { gte: en22h, lte: en26h }, estado: "ACTIVO" },
-      },
+      where: { ...whereBase, pagoRecordatorio24h: false, viaje: { horarioSalida: { gte: en22h, lte: en26h }, estado: "ACTIVO" } },
       include: {
         user: { select: { nombre: true, email: true } },
         viaje: { select: { origen: true, destino: true, horarioSalida: true } },
       },
     }),
     prisma.reserva.findMany({
-      where: {
-        estadoReserva: "CONFIRMADA",
-        estadoPago: "PENDIENTE",
-        metodoPago: "MERCADO_PAGO",
-        pagoRecordatorio12h: false,
-        viaje: { horarioSalida: { gte: en10h, lte: en14h }, estado: "ACTIVO" },
-      },
+      where: { ...whereBase, pagoRecordatorio12h: false, viaje: { horarioSalida: { gte: en10h, lte: en14h }, estado: "ACTIVO" } },
       include: {
         user: { select: { nombre: true, email: true } },
         viaje: { select: { origen: true, destino: true, horarioSalida: true } },
@@ -148,6 +142,10 @@ export async function GET(req: NextRequest) {
   for (const r of pendientes24h) {
     const hora = format(r.viaje.horarioSalida, "HH:mm");
     const fecha = format(r.viaje.horarioSalida, "d 'de' MMMM", { locale: es });
+    const esEfectivo = r.metodoPago === "EFECTIVO";
+    const cta = esEfectivo
+      ? `<p style="color:#374151;">Acercate a nuestra oficina para abonar antes del viaje.</p>`
+      : `<div style="text-align:center;margin:32px 0;"><a href="${baseUrl}/mis-reservas" style="background:#d97706;color:#fff;padding:14px 32px;border-radius:8px;font-weight:bold;font-size:16px;text-decoration:none;display:inline-block;">Pagar ahora</a></div>`;
     try {
       await createTransporter().sendMail({
         from: `"Estrella Tour" <${FROM_EMAIL}>`,
@@ -163,10 +161,8 @@ export async function GET(req: NextRequest) {
     <div style="padding:40px;">
       <p style="color:#374151;font-size:16px;">Hola <strong>${r.user.nombre}</strong>,</p>
       <p style="color:#374151;">Tu reserva del <strong>${fecha} a las ${hora} hs</strong> (${r.viaje.origen} → ${r.viaje.destino}) todavía figura como <strong>sin pagar</strong>.</p>
-      <p style="color:#374151;">Quedan menos de <strong>24 horas</strong> para el viaje. Abonalo antes de que se cancele automáticamente.</p>
-      <div style="text-align:center;margin:32px 0;">
-        <a href="${baseUrl}/mis-reservas" style="background:#d97706;color:#fff;padding:14px 32px;border-radius:8px;font-weight:bold;font-size:16px;text-decoration:none;display:inline-block;">Pagar ahora</a>
-      </div>
+      <p style="color:#374151;">Quedan menos de <strong>24 horas</strong> para el viaje.</p>
+      ${cta}
     </div>
     <div style="background:#f9fafb;padding:16px 40px;text-align:center;">
       <p style="color:#9ca3af;font-size:12px;margin:0;">Estrella Tour — Más de 16 años conectando Mercedes con Buenos Aires</p>
@@ -181,6 +177,10 @@ export async function GET(req: NextRequest) {
   for (const r of pendientes12h) {
     const hora = format(r.viaje.horarioSalida, "HH:mm");
     const fecha = format(r.viaje.horarioSalida, "d 'de' MMMM", { locale: es });
+    const esEfectivo = r.metodoPago === "EFECTIVO";
+    const cta = esEfectivo
+      ? `<p style="color:#374151;">Acercate a nuestra oficina a la brevedad para no perder tu lugar.</p>`
+      : `<div style="text-align:center;margin:32px 0;"><a href="${baseUrl}/mis-reservas" style="background:#dc2626;color:#fff;padding:14px 32px;border-radius:8px;font-weight:bold;font-size:16px;text-decoration:none;display:inline-block;">Pagar ahora</a></div>`;
     try {
       await createTransporter().sendMail({
         from: `"Estrella Tour" <${FROM_EMAIL}>`,
@@ -196,10 +196,7 @@ export async function GET(req: NextRequest) {
     <div style="padding:40px;">
       <p style="color:#374151;font-size:16px;">Hola <strong>${r.user.nombre}</strong>,</p>
       <p style="color:#374151;">Tu viaje del <strong>${fecha} a las ${hora} hs</strong> (${r.viaje.origen} → ${r.viaje.destino}) sale en menos de <strong>12 horas</strong> y el pago aún está pendiente.</p>
-      <p style="color:#374151;">Si no abonás a la brevedad, tu lugar puede liberarse.</p>
-      <div style="text-align:center;margin:32px 0;">
-        <a href="${baseUrl}/mis-reservas" style="background:#dc2626;color:#fff;padding:14px 32px;border-radius:8px;font-weight:bold;font-size:16px;text-decoration:none;display:inline-block;">Pagar ahora</a>
-      </div>
+      ${cta}
     </div>
     <div style="background:#f9fafb;padding:16px 40px;text-align:center;">
       <p style="color:#9ca3af;font-size:12px;margin:0;">Estrella Tour — Más de 16 años conectando Mercedes con Buenos Aires</p>
