@@ -101,6 +101,63 @@ export async function enviarConfirmacionReserva(datos: DatosReserva) {
   });
 }
 
+export async function enviarAsientoReservadoPendientePago(datos: Omit<DatosReserva, "metodoPago">) {
+  const fecha = format(datos.horarioSalida, "EEEE d 'de' MMMM 'de' yyyy", { locale: es });
+  const hora = format(datos.horarioSalida, "HH:mm", { locale: es });
+
+  await sendMail({
+    to: datos.email,
+    subject: `Tu asiento está guardado — ${datos.origen} → ${datos.destino}`,
+    html: `
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><title>Asiento Reservado</title></head>
+<body style="font-family:Arial,sans-serif;background:#f4f7fb;margin:0;padding:0;">
+  <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background:#1e3a8a;padding:32px 40px;text-align:center;">
+      <h1 style="color:#fff;margin:0;font-size:24px;">⭐ Estrella Tour</h1>
+      <p style="color:#93c5fd;margin:8px 0 0;">Asiento Guardado — Pago Pendiente</p>
+    </div>
+    <div style="padding:40px;">
+      <p style="color:#374151;font-size:16px;">Hola <strong>${datos.nombre}</strong>,</p>
+      <p style="color:#374151;">Tu asiento quedó <strong>reservado</strong>. Para confirmar tu lugar, acercate a abonar en nuestra oficina.</p>
+
+      <div style="background:#eff6ff;border-radius:8px;padding:24px;margin:24px 0;border-left:4px solid #1e3a8a;">
+        <h2 style="color:#1e3a8a;margin:0 0 16px;font-size:18px;">Datos del Viaje</h2>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="padding:6px 0;color:#6b7280;">Desde</td><td style="padding:6px 0;color:#111827;font-weight:600;">${datos.origen}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;">Hasta</td><td style="padding:6px 0;color:#111827;font-weight:600;">${datos.destino}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;">Fecha</td><td style="padding:6px 0;color:#111827;font-weight:600;">${fecha}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;">Horario de salida</td><td style="padding:6px 0;color:#111827;font-weight:600;">${hora} hs</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;">Asiento N°</td><td style="padding:6px 0;color:#111827;font-weight:600;">${datos.asientoNumero}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;">Total a abonar</td><td style="padding:6px 0;color:#1e3a8a;font-weight:700;font-size:18px;">$${datos.monto.toLocaleString("es-AR")}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;">Código de reserva</td><td style="padding:6px 0;color:#111827;font-family:monospace;font-size:13px;">${datos.reservaId}</td></tr>
+        </table>
+      </div>
+
+      <div style="background:#fef3c7;border-radius:8px;padding:16px;margin:16px 0;border-left:4px solid #d97706;">
+        <p style="margin:0;color:#92400e;font-size:14px;"><strong>⚠️ Recordá:</strong> Tu lugar queda reservado, pero necesitás pasar a abonar en nuestra oficina para confirmar definitivamente el viaje. Una vez que registremos tu pago, te llegará un email de confirmación.</p>
+      </div>
+
+      <div style="margin-top:24px;padding-top:24px;border-top:1px solid #e5e7eb;">
+        <p style="color:#374151;font-size:14px;"><strong>¿Necesitás ayuda o querés cancelar?</strong></p>
+        <p style="color:#6b7280;font-size:14px;">Comunicáte con nosotros por WhatsApp:</p>
+        <p style="font-size:14px;">
+          📱 <a href="https://wa.me/542324504000" style="color:#1e3a8a;">2324-504000</a> &nbsp;|&nbsp;
+          <a href="https://wa.me/542324560139" style="color:#1e3a8a;">2324-560139</a> &nbsp;|&nbsp;
+          <a href="https://wa.me/541122663000" style="color:#1e3a8a;">11-22663000</a>
+        </p>
+      </div>
+    </div>
+    <div style="background:#f9fafb;padding:16px 40px;text-align:center;">
+      <p style="color:#9ca3af;font-size:12px;margin:0;">Estrella Tour — Más de 16 años conectando Mercedes con Buenos Aires</p>
+    </div>
+  </div>
+</body>
+</html>`,
+  });
+}
+
 export async function enviarCancelacionReserva(datos: Omit<DatosReserva, "metodoPago" | "monto">) {
   const fecha = format(datos.horarioSalida, "EEEE d 'de' MMMM 'de' yyyy", { locale: es });
   const hora = format(datos.horarioSalida, "HH:mm", { locale: es });

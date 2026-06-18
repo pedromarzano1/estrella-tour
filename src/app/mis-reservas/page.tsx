@@ -10,13 +10,13 @@ export default async function MisReservasPage() {
   if (!user) redirect("/login?callbackUrl=/mis-reservas");
 
   const reservas = await prisma.reserva.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, viaje: { horarioSalida: { gte: new Date() } } },
     include: {
       viaje: { include: { vehiculo: true } },
       asiento: true,
       pago: true,
     },
-    orderBy: { creadoEn: "desc" },
+    orderBy: { viaje: { horarioSalida: "asc" } },
   });
 
   const serialized = reservas.map((r) => ({

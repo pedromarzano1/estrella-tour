@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getSessionFromRequest } from "@/lib/auth";
 import { crearReservaSchema } from "@/lib/validations";
 import { crearPreferencia } from "@/lib/mercadopago";
-import { enviarConfirmacionReserva } from "@/lib/email";
+import { enviarAsientoReservadoPendientePago } from "@/lib/email";
 import { EstadoAsiento } from "@prisma/client";
 import { rateLimit, getRateLimitKey } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
@@ -146,20 +146,17 @@ export async function POST(req: NextRequest) {
 
     logger.info("reserva.created", { reservaId: reserva.id, userId: user.id, viajeId, metodo: "EFECTIVO" });
 
-    // Si es efectivo, enviar email de confirmación (sin bloquear si falla)
-    await enviarConfirmacionReserva({
+    // Si es efectivo, avisar que el asiento está guardado y el pago es pendiente
+    await enviarAsientoReservadoPendientePago({
       nombre: user.nombre,
       email: user.email,
       origen: reserva.viaje.origen,
       destino: reserva.viaje.destino,
       horarioSalida: reserva.viaje.horarioSalida,
       asientoNumero: reserva.asiento.numero,
-      metodoPago: "EFECTIVO",
       monto: reserva.monto,
       reservaId: reserva.id,
-    }).then(() =>
-      prisma.reserva.update({ where: { id: reserva.id }, data: { emailEnviado: true } })
-    ).catch(() => {});
+    }).catch(() => {});
 
     return NextResponse.json({ reservaId: reserva.id });
   } catch (err: unknown) {
