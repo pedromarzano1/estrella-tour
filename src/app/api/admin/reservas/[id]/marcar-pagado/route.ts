@@ -41,21 +41,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }),
   ]);
 
-  try {
-    await enviarConfirmacionReserva({
-      nombre: reserva.user.nombre,
-      email: reserva.user.email,
-      origen: reserva.viaje.origen,
-      destino: reserva.viaje.destino,
-      horarioSalida: reserva.viaje.horarioSalida,
-      asientoNumero: reserva.asiento.numero,
-      metodoPago: reserva.metodoPago,
-      monto: reserva.monto,
-      reservaId: reserva.id,
-    });
-    logger.info("payment.confirmed_by_admin", { reservaId: id, adminId: user.id, email: reserva.user.email });
-  } catch (err) {
-    logger.error("payment.confirm_email_failed", { reservaId: id, error: String(err) });
+  if (!reserva.emailEnviado) {
+    try {
+      await enviarConfirmacionReserva({
+        nombre: reserva.user.nombre,
+        email: reserva.user.email,
+        origen: reserva.viaje.origen,
+        destino: reserva.viaje.destino,
+        horarioSalida: reserva.viaje.horarioSalida,
+        asientoNumero: reserva.asiento.numero,
+        metodoPago: reserva.metodoPago,
+        monto: reserva.monto,
+        reservaId: reserva.id,
+      });
+      await prisma.reserva.update({ where: { id }, data: { emailEnviado: true } });
+      logger.info("payment.confirmed_by_admin", { reservaId: id, adminId: user.id, email: reserva.user.email });
+    } catch (err) {
+      logger.error("payment.confirm_email_failed", { reservaId: id, error: String(err) });
+    }
   }
 
   return NextResponse.json({ ok: true });

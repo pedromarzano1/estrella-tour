@@ -5,24 +5,23 @@ import { es } from "date-fns/locale";
 const FROM_NAME = "Estrella Tour";
 const FROM_EMAIL = process.env.GMAIL_USER ?? process.env.FROM_EMAIL ?? "reservas@estrellatour.com.ar";
 
-function createTransporter() {
-  return nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-    tls: {
-      rejectUnauthorized: false,
-    },
-  });
+let _transporter: ReturnType<typeof nodemailer.createTransport> | null = null;
+
+function getTransporter() {
+  if (!_transporter) {
+    _transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+      tls: { rejectUnauthorized: false },
+    });
+  }
+  return _transporter;
 }
 
 async function sendMail(options: { to: string; subject: string; html: string }) {
-  const transporter = createTransporter();
-  await transporter.sendMail({
+  await getTransporter().sendMail({
     from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
     to: options.to,
     subject: options.subject,
@@ -376,5 +375,103 @@ export async function enviarNotificacionAdminPagoRecibido(datos: {
   <li><strong>Monto:</strong> $${datos.monto.toLocaleString("es-AR")}</li>
   <li><strong>ID Reserva:</strong> ${datos.reservaId}</li>
 </ul>`,
+  });
+}
+
+export async function enviarRecordatorioViaje(datos: {
+  nombre: string;
+  email: string;
+  origen: string;
+  destino: string;
+  horarioSalida: Date;
+  asientoNumero: number;
+}) {
+  const fecha = format(datos.horarioSalida, "EEEE d 'de' MMMM", { locale: es });
+  const hora = format(datos.horarioSalida, "HH:mm");
+
+  await sendMail({
+    to: datos.email,
+    subject: `⏰ Recordatorio: tu viaje mañana a las ${hora}`,
+    html: `
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;background:#f4f7fb;margin:0;padding:0;">
+  <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background:#0c4a6e;padding:32px 40px;text-align:center;">
+      <h1 style="color:#fff;margin:0;font-size:24px;">⭐ Estrella Tour</h1>
+      <p style="color:#7dd3fc;margin:8px 0 0;">Recordatorio de viaje</p>
+    </div>
+    <div style="padding:40px;">
+      <p style="color:#374151;font-size:16px;">Hola <strong>${datos.nombre}</strong>,</p>
+      <p style="color:#374151;">Te recordamos que <strong>mañana</strong> tenés un viaje programado.</p>
+      <div style="background:#eff6ff;border-radius:8px;padding:24px;margin:24px 0;border-left:4px solid #0ea5e9;">
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="padding:6px 0;color:#6b7280;">Ruta</td><td style="font-weight:600;color:#111827;">${datos.origen} → ${datos.destino}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;">Fecha</td><td style="font-weight:600;color:#111827;">${fecha}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;">Hora de salida</td><td style="font-weight:700;color:#0ea5e9;font-size:18px;">${hora} hs</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;">Asiento</td><td style="font-weight:600;color:#111827;">N° ${datos.asientoNumero}</td></tr>
+        </table>
+      </div>
+      <div style="background:#fef3c7;border-radius:8px;padding:16px;border-left:4px solid #d97706;">
+        <p style="margin:0;color:#92400e;font-size:14px;">⚠️ Si necesitás cancelar, tenés tiempo hasta 24 horas antes de la salida. Hacelo desde "Mis Reservas" en nuestra web.</p>
+      </div>
+    </div>
+    <div style="background:#f9fafb;padding:16px 40px;text-align:center;">
+      <p style="color:#9ca3af;font-size:12px;margin:0;">Estrella Tour — Más de 16 años conectando Mercedes con Buenos Aires</p>
+    </div>
+  </div>
+</body>
+</html>`,
+  });
+}
+
+export async function enviarAvisoPagoPendiente(datos: {
+  nombre: string;
+  email: string;
+  origen: string;
+  destino: string;
+  horarioSalida: Date;
+  metodoPago: string;
+  ventana: "24h" | "12h";
+}) {
+  const hora = format(datos.horarioSalida, "HH:mm");
+  const fecha = format(datos.horarioSalida, "d 'de' MMMM", { locale: es });
+  const esEfectivo = datos.metodoPago === "EFECTIVO";
+  const es24h = datos.ventana === "24h";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://estrella-tour.vercel.app";
+
+  const headerColor = es24h ? "#d97706" : "#dc2626";
+  const subtitleColor = es24h ? "#fef3c7" : "#fca5a5";
+  const subject = es24h
+    ? `⚠️ Falta abonar tu reserva — viaje mañana ${hora} hs`
+    : `🚨 Último aviso: tu reserva vence en 12 hs — ${hora} hs`;
+  const cuerpo = es24h
+    ? `Tu reserva del <strong>${fecha} a las ${hora} hs</strong> (${datos.origen} → ${datos.destino}) todavía figura como <strong>sin pagar</strong>. Quedan menos de <strong>24 horas</strong> para el viaje.`
+    : `Tu viaje del <strong>${fecha} a las ${hora} hs</strong> (${datos.origen} → ${datos.destino}) sale en menos de <strong>12 horas</strong> y el pago aún está pendiente.`;
+  const cta = esEfectivo
+    ? `<p style="color:#374151;">${es24h ? "Acercate a nuestra oficina para abonar antes del viaje." : "Acercate a nuestra oficina a la brevedad para no perder tu lugar."}</p>`
+    : `<div style="text-align:center;margin:32px 0;"><a href="${baseUrl}/mis-reservas" style="background:${headerColor};color:#fff;padding:14px 32px;border-radius:8px;font-weight:bold;font-size:16px;text-decoration:none;display:inline-block;">Pagar ahora</a></div>`;
+
+  await sendMail({
+    to: datos.email,
+    subject,
+    html: `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;background:#f4f7fb;margin:0;padding:0;">
+  <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background:${headerColor};padding:32px 40px;text-align:center;">
+      <h1 style="color:#fff;margin:0;font-size:24px;">⭐ Estrella Tour</h1>
+      <p style="color:${subtitleColor};margin:8px 0 0;">${es24h ? "Pago pendiente" : "Último aviso de pago"}</p>
+    </div>
+    <div style="padding:40px;">
+      <p style="color:#374151;font-size:16px;">Hola <strong>${datos.nombre}</strong>,</p>
+      <p style="color:#374151;">${cuerpo}</p>
+      ${cta}
+    </div>
+    <div style="background:#f9fafb;padding:16px 40px;text-align:center;">
+      <p style="color:#9ca3af;font-size:12px;margin:0;">Estrella Tour — Más de 16 años conectando Mercedes con Buenos Aires</p>
+    </div>
+  </div>
+</body></html>`,
   });
 }
