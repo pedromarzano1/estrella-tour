@@ -4,9 +4,14 @@ import { generarViajesFaltantes } from "@/lib/viajes-recurrentes";
 import { enviarRecordatorioViaje, enviarAvisoPagoPendiente } from "@/lib/email";
 import { timingSafeEqual } from "crypto";
 
-function secretValido(provided: string | null): boolean {
+function secretValido(req: NextRequest): boolean {
   const expected = process.env.CRON_SECRET;
-  if (!provided || !expected) return false;
+  if (!expected) return false;
+  // Vercel Cron inyecta Authorization: Bearer <CRON_SECRET> automáticamente.
+  // Para triggers manuales: curl -H "Authorization: Bearer <secret>" <url>
+  const auth = req.headers.get("authorization") ?? "";
+  const provided = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  if (!provided) return false;
   try {
     const a = Buffer.from(provided);
     const b = Buffer.from(expected);
@@ -143,7 +148,7 @@ async function procesarAvisosPago(ahora: Date) {
 
 // Llamado por Vercel Cron (vercel.json) o manualmente por el admin
 export async function GET(req: NextRequest) {
-  if (!secretValido(req.nextUrl.searchParams.get("secret"))) {
+  if (!secretValido(req)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 

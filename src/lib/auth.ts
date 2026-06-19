@@ -50,7 +50,10 @@ export async function getSessionFromRequest(req: NextRequest) {
     include: { user: true },
   });
 
-  if (!session || session.expira < new Date()) return null;
+  if (!session || session.expira < new Date()) {
+    if (session) prisma.session.delete({ where: { token } }).catch(() => {});
+    return null;
+  }
   return session.user;
 }
 

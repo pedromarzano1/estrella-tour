@@ -28,11 +28,6 @@ export async function POST(req: NextRequest) {
 
   try {
     const reserva = await prisma.$transaction(async (tx) => {
-      const asiento = await tx.asiento.findUnique({ where: { id: asientoId } });
-      if (!asiento || asiento.estado !== EstadoAsiento.DISPONIBLE || asiento.viajeId !== viajeId) {
-        throw new Error("ASIENTO_NO_DISPONIBLE");
-      }
-
       const viaje = await tx.viaje.findUnique({ where: { id: viajeId } });
       if (!viaje || viaje.estado !== "ACTIVO" || viaje.horarioSalida < new Date()) {
         throw new Error("VIAJE_NO_DISPONIBLE");
@@ -43,7 +38,11 @@ export async function POST(req: NextRequest) {
       });
       if (yaReservado) throw new Error("YA_TIENE_RESERVA");
 
-      await tx.asiento.update({ where: { id: asientoId }, data: { estado: EstadoAsiento.RESERVADO } });
+      const claimed = await tx.asiento.updateMany({
+        where: { id: asientoId, viajeId, estado: EstadoAsiento.DISPONIBLE },
+        data: { estado: EstadoAsiento.RESERVADO },
+      });
+      if (claimed.count === 0) throw new Error("ASIENTO_NO_DISPONIBLE");
 
       return tx.reserva.create({
         data: { userId, viajeId, asientoId, metodoPago: "EFECTIVO", monto: viaje.precio },
@@ -78,17 +77,26 @@ export async function POST(req: NextRequest) {
         const asientoActual = await prisma.asiento.findUnique({ where: { id: asientoId }, select: { numero: true } });
         const numeroAsiento = asientoActual?.numero ?? 1;
 
-        for (const vf of viajesFuturos) {
-          const yaReservado = await prisma.reserva.findFirst({ where: { userId, viajeId: vf.id, estadoReserva: "CONFIRMADA" } });
-          if (yaReservado) continue;
-          const asientoMismo = vf.asientos.find((a) => a.numero === numeroAsiento);
-          const asientoElegido = asientoMismo ?? vf.asientos[0];
-          if (!asientoElegido) continue;
-          await prisma.asiento.update({ where: { id: asientoElegido.id }, data: { estado: EstadoAsiento.RESERVADO } });
-          await prisma.reserva.create({
-            data: { userId, viajeId: vf.id, asientoId: asientoElegido.id, metodoPago: "EFECTIVO", monto: vf.precio },
-          });
-        }
+        await Promise.allSettled(
+          viajesFuturos.map(async (vf) => {
+            const yaReservado = await prisma.reserva.findFirst({
+              where: { userId, viajeId: vf.id, estadoReserva: "CONFIRMADA" },
+            });
+            if (yaReservado) return;
+
+            const asientoMismo = vf.asientos.find((a) => a.numero === numeroAsiento);
+            const asientoElegido = asientoMismo ?? vf.asientos[0];
+            if (!asientoElegido) return;
+
+            // Transacción atómica por viaje: si falla uno no afecta al resto
+            await prisma.$transaction([
+              prisma.asiento.update({ where: { id: asientoElegido.id }, data: { estado: EstadoAsiento.RESERVADO } }),
+              prisma.reserva.create({
+                data: { userId, viajeId: vf.id, asientoId: asientoElegido.id, metodoPago: "EFECTIVO", monto: vf.precio },
+              }),
+            ]);
+          })
+        );
       }
     }
 

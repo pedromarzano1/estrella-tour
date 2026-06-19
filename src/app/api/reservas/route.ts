@@ -51,16 +51,7 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // Bloquear y verificar asiento
-      const asiento = await tx.asiento.findUnique({ where: { id: asientoId } });
-      if (!asiento || asiento.estado !== EstadoAsiento.DISPONIBLE) {
-        throw new Error("ASIENTO_NO_DISPONIBLE");
-      }
-      if (asiento.viajeId !== viajeId) {
-        throw new Error("ASIENTO_INVALIDO");
-      }
-
-      // Verificar viaje activo y futuro
+      // Verificar viaje activo y futuro (lectura sin lock, antes del claim)
       const viaje = await tx.viaje.findUnique({ where: { id: viajeId } });
       if (!viaje || viaje.estado !== "ACTIVO" || viaje.horarioSalida < new Date()) {
         throw new Error("VIAJE_NO_DISPONIBLE");
@@ -68,21 +59,17 @@ export async function POST(req: NextRequest) {
 
       // Verificar que el usuario no tenga ya una reserva activa en este viaje
       const reservaExistente = await tx.reserva.findFirst({
-        where: {
-          userId: user.id,
-          viajeId,
-          estadoReserva: "CONFIRMADA",
-        },
+        where: { userId: user.id, viajeId, estadoReserva: "CONFIRMADA" },
       });
-      if (reservaExistente) {
-        throw new Error("YA_TIENE_RESERVA");
-      }
+      if (reservaExistente) throw new Error("YA_TIENE_RESERVA");
 
-      // Marcar asiento como reservado
-      await tx.asiento.update({
-        where: { id: asientoId },
+      // Claim atómico: el UPDATE incluye estado y viajeId en el WHERE.
+      // Solo la primera transacción concurrente obtiene count=1; las demás ven count=0.
+      const claimed = await tx.asiento.updateMany({
+        where: { id: asientoId, viajeId, estado: EstadoAsiento.DISPONIBLE },
         data: { estado: EstadoAsiento.RESERVADO },
       });
+      if (claimed.count === 0) throw new Error("ASIENTO_NO_DISPONIBLE");
 
       // Crear reserva
       const nueva = await tx.reserva.create({
@@ -162,8 +149,7 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "ERROR";
     const errorMap: Record<string, [string, number]> = {
-      ASIENTO_NO_DISPONIBLE: ["El asiento ya fue reservado por otro usuario", 409],
-      ASIENTO_INVALIDO: ["Asiento inválido para este viaje", 400],
+      ASIENTO_NO_DISPONIBLE: ["El asiento no está disponible", 409],
       VIAJE_NO_DISPONIBLE: ["El viaje no está disponible", 400],
       YA_TIENE_RESERVA: ["Ya tenés una reserva en este viaje", 409],
     };
