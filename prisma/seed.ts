@@ -4,20 +4,29 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Admin por defecto
-  const passwordHash = await bcrypt.hash("Admin1234!", 12);
+  const adminEmail = process.env.SEED_ADMIN_EMAIL;
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+
+  if (!adminEmail || !adminPassword) {
+    throw new Error(
+      "Definí SEED_ADMIN_EMAIL y SEED_ADMIN_PASSWORD en .env antes de correr el seed."
+    );
+  }
+
+  const passwordHash = await bcrypt.hash(adminPassword, 12);
   await prisma.user.upsert({
-    where: { email: "admin@estrellatour.com.ar" },
+    where: { email: adminEmail },
     update: {},
     create: {
       nombre: "Administrador",
-      email: "admin@estrellatour.com.ar",
+      email: adminEmail,
       passwordHash,
       rol: Rol.ADMIN,
     },
   });
 
-  // Vehículo de ejemplo
+  console.log(`Seed completado. Admin creado: ${adminEmail}`);
+
   const vehiculo = await prisma.vehiculo.upsert({
     where: { patente: "AB123CD" },
     update: {},
@@ -28,7 +37,6 @@ async function main() {
     },
   });
 
-  console.log("Seed completado. Admin: admin@estrellatour.com.ar / Admin1234!");
   console.log("Vehículo de prueba creado:", vehiculo.patente);
 }
 
