@@ -24,7 +24,8 @@ export async function POST(req: NextRequest) {
 
   const existe = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
   if (existe) {
-    return NextResponse.json({ error: "Ese email ya está registrado" }, { status: 409 });
+    // Respuesta genérica: no revelar si el email está o no registrado (anti-enumeración)
+    return NextResponse.json({ error: "No se pudo completar el registro. Si ya tenés cuenta, iniciá sesión." }, { status: 409 });
   }
 
   const passwordHash = await hashPassword(password);
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
     value: user.rol,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "strict",
     maxAge: cookieOpts.maxAge,
     path: "/",
   });

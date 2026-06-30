@@ -382,7 +382,8 @@ export async function enviarNotificacionAdminPagoRecibido(datos: {
   asientoNumero: number;
   monto: number;
 }) {
-  const adminEmail = process.env.ADMIN_EMAIL!;
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!adminEmail) throw new Error("ADMIN_EMAIL env var no configurada");
   const fecha = format(datos.horario, "dd/MM/yyyy HH:mm", { locale: es });
   const nombrePasajero = escapeHtml(datos.nombrePasajero);
   const emailPasajero = escapeHtml(datos.emailPasajero);
